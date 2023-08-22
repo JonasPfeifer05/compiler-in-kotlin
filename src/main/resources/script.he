@@ -1,2 +1,1 @@
-hallo
-exit 0
+exit(255);

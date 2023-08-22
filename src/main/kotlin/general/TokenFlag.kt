@@ -2,7 +2,20 @@ package general
 
 enum class TokenFlag {
     Useless,
+
+    Exit,
+
     Literal,
-    Keyword,
+
     Number,
+
+    OpenBracket,
+    ClosedBracket,
+
+    Semicolon,;
+
+    override fun toString(): String {
+        return this.name;
+    }
 }
+

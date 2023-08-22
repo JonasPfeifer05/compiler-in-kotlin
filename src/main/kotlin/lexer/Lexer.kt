@@ -12,8 +12,6 @@ const val NEW_LINE = '\n';
 val EMPTY_CHARACTERS = charArrayOf(' ', '\t');
 val SKIPABLES = charArrayOf('\r');
 
-val KEYWORDS = arrayOf("exit");
-
 class Lexer(private val data: CharArray) {
     // For getting / peeking chars
     private var globalIndex: UInt = 0u;
@@ -45,41 +43,57 @@ class Lexer(private val data: CharArray) {
         val currentChar = currentCharOptional.get();
 
         if (SKIPABLES.contains(currentChar))
-            return Optional.of(Token("skipable", TokenFlag.Useless));
+            return Optional.of(Token("skipable", TokenFlag.Useless, LocationToken()));
 
         this.currentLineContent.append(currentChar);
 
         if (currentChar == NEW_LINE) {
             this.prepareNextLine();
-            return Optional.of(Token("\\n", TokenFlag.Useless));
+            return Optional.of(Token("\\n", TokenFlag.Useless, LocationToken()));
         }
 
         this.advanceIndicesToNextCharacter();
 
         if (EMPTY_CHARACTERS.contains(currentChar))
-            return Optional.of(Token("empty", TokenFlag.Useless));
+            return Optional.of(Token("empty", TokenFlag.Useless, LocationToken()));
 
-        if (currentChar in LITERAL_RANGE) {
+        val tokenStartIndex = this.characterIndex-1u;
+        if (currentChar == ';') {
             return Optional.of(
-                this.readLiteral(currentChar)
+                Token(";", TokenFlag.Semicolon, LocationToken(this.lineIndex, tokenStartIndex..this.characterIndex))
+            )
+        } else if (currentChar == '(') {
+            return Optional.of(
+                Token("(", TokenFlag.OpenBracket, LocationToken(this.lineIndex, tokenStartIndex..this.characterIndex))
+            )
+        } else if (currentChar == ')') {
+            return Optional.of(
+                Token(")", TokenFlag.ClosedBracket, LocationToken(this.lineIndex, tokenStartIndex..this.characterIndex))
+            )
+        } else if (currentChar in LITERAL_RANGE) {
+            return Optional.of(
+                this.readLiteral(currentChar, tokenStartIndex)
             );
         } else if (currentChar in NUMBER_RANGE) {
+            val value = currentChar + this.readMatchingSequence { this in NUMBER_RANGE };
             return Optional.of(
-                Token(currentChar + this.readMatchingSequence { this in NUMBER_RANGE }, TokenFlag.Number)
+                Token(value, TokenFlag.Number, LocationToken(this.lineIndex, tokenStartIndex..this.characterIndex))
             );
         }
 
         throw UnknownCharException(currentChar, LocationToken(this.lineIndex, this.characterIndex-1u), this.readCurrentLineToEnd());
     }
 
-    private fun readLiteral(start: Char): Token {
+    private fun readLiteral(start: Char, tokenStartIndex: UInt): Token {
         val content = start + this.readMatchingSequence { this in LITERAL_RANGE };
 
-        return if (KEYWORDS.contains(content)) {
-            Token(content, TokenFlag.Keyword);
-        } else {
-            Token(content, TokenFlag.Literal);
-        };
+        val location = LocationToken(this.lineIndex, tokenStartIndex..this.characterIndex);
+
+        if (content == "exit") {
+            return Token(content, TokenFlag.Exit, location);
+        }
+
+        return Token(content, TokenFlag.Literal, location);
     }
 
     private fun readMatchingSequence(doesMatch: Char.() -> Boolean): String {
