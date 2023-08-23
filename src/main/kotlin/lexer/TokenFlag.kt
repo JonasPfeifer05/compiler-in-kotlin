@@ -4,10 +4,12 @@ enum class TokenFlag {
     Useless,
 
     Exit,
+    Let,
 
     Literal,
-
     Number,
+
+    Assign,
 
     OpenBracket,
     ClosedBracket,

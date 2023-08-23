@@ -13,6 +13,7 @@ class ASMGenerator(private val statements: List<Statement>) {
 
         for (node in this.statements) {
             node.toAssembly(asmBuilder)
+            asmBuilder.append("")
         }
 
         return asmBuilder.toString()

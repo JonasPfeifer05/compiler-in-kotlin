@@ -50,10 +50,12 @@ class Lexer(private val lineBuffer: LineBuffer) {
             ';' -> Pair(";", TokenFlag.Semicolon)
             '(' -> Pair("(", TokenFlag.OpenBracket)
             ')' -> Pair(")", TokenFlag.ClosedBracket)
+            '=' -> Pair("=", TokenFlag.Assign)
             in LITERAL_RANGE -> {
                 val value = currentChar + this.readMatchingSequence { this in LITERAL_RANGE }
                 when (value) {
                     "exit" -> Pair(value, TokenFlag.Exit)
+                    "let" -> Pair(value, TokenFlag.Let)
                     else -> Pair(value, TokenFlag.Literal)
                 }
             }
@@ -80,7 +82,7 @@ class Lexer(private val lineBuffer: LineBuffer) {
         val builder = StringBuilder()
 
         var peekChar = this.peekChar()
-        while (peekChar.isPresent && doesMatch(peekChar.get())) {
+        while (peekChar.isPresent && peekChar.get().doesMatch()) {
             builder.append(
                 this.consumeChar()
             )
