@@ -30,5 +30,5 @@ fun main() {
             exitProcess(1)
         }
     }
-    println("Compilation took ${durationInMillis / 1000.0}s")
+    println("OK! Compilation took ${durationInMillis / 1000.0}s")
 }
