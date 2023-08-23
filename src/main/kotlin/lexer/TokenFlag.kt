@@ -1,4 +1,4 @@
-package general
+package lexer
 
 enum class TokenFlag {
     Useless,
@@ -13,9 +13,5 @@ enum class TokenFlag {
     ClosedBracket,
 
     Semicolon,;
-
-    override fun toString(): String {
-        return this.name;
-    }
 }
 

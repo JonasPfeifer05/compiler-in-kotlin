@@ -1,7 +1,7 @@
 package parser
 
-import general.Token
-import general.TokenFlag
+import lexer.Token
+import lexer.TokenFlag
 import parser.nodes.*
 import java.util.Optional
 
