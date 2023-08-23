@@ -1,64 +1,73 @@
 package parser
 
+import errors.parser.FoundUnexpectedTokenException
+import errors.parser.RanOutOfTokensButExpectedTokenException
+import errors.parser.UnexpectedTokenException
+import general.LineBuffer
 import lexer.Token
 import lexer.TokenFlag
 import parser.nodes.*
+import parser.statements.ExitStatement
+import parser.statements.Statement
 import java.util.Optional
 
-class Parser(private val tokens: List<Token>) {
-    private var globalIndex = 0u;
+class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>) {
+    private var tokenIndex = 0u
 
-    fun parseProgram(): Program {
-        val nodes: MutableList<StmtNode> = mutableListOf();
+    fun parseProgram(): List<Statement> {
+        val nodes: MutableList<Statement> = mutableListOf()
 
         while (this.peekToken().isPresent) {
             nodes.add(parseStatement())
         }
 
-        return Program(nodes);
+        return nodes
     }
 
-    private fun parseStatement(): StmtNode {
-        val startToken = this.consumeToken().get();
+    private fun parseStatement(): Statement {
+        val startToken = this.consumeToken()
 
         if (startToken.flag == TokenFlag.Exit) {
             this.expectNextTokenFlag(TokenFlag.OpenBracket)
 
-            val expression = this.parseExpression();
+            val expression = this.parseExpression()
 
             this.expectNextTokenFlag(TokenFlag.ClosedBracket)
             this.expectNextTokenFlag(TokenFlag.Semicolon)
 
-            return ExitNode(expression);
+            return ExitStatement(expression)
         } else throw UnexpectedTokenException(startToken)
     }
 
-    private fun parseExpression(): ExprNode {
-        return NumberNode(
+    private fun parseExpression(): ExpressionNode {
+        return NumberExpressionNode(
             this.expectNextTokenFlag(TokenFlag.Number).value
         )
     }
 
     private fun expectNextTokenFlag(vararg expectedFlags: TokenFlag): Token {
-        val tokenOptional = this.consumeToken();
-        if (tokenOptional.isEmpty) throw RanOutOfTokenException();
+        if (this.peekToken().isEmpty) throw RanOutOfTokensButExpectedTokenException(expectedFlags, this.previousToken().tokenLocation.lineIndex, this.lineBuffer)
 
-        val token = tokenOptional.get();
-        if (!expectedFlags.contains(token.flag)) throw ExpectedTokenButGotException(token, expectedFlags);
+        val token = this.consumeToken()
+        if (!expectedFlags.contains(token.flag)) throw FoundUnexpectedTokenException(token, expectedFlags, this.lineBuffer)
 
-        return token;
+        return token
     }
 
-    private fun consumeToken(): Optional<Token> {
-        if (this.globalIndex.toInt() == tokens.size) return Optional.empty()
+    private fun consumeToken(): Token {
+        val token = this.tokens[this.tokenIndex.toInt()]
 
-        this.globalIndex++;
-        return Optional.of(this.tokens[this.globalIndex.toInt() - 1])
+        this.tokenIndex++
+        return token
+    }
+
+    private fun previousToken(): Token {
+        return this.tokens[this.tokenIndex.toInt() - 1]
     }
 
     private fun peekToken(): Optional<Token> {
-        if (this.globalIndex.toInt() == tokens.size) return Optional.empty()
+        if (this.tokenIndex.toInt() == tokens.size) return Optional.empty()
 
-        return Optional.of(this.tokens[this.globalIndex.toInt()])
+        return Optional.of(this.tokens[this.tokenIndex.toInt()])
     }
 }

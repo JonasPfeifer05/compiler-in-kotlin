@@ -1,28 +1,34 @@
 import general.LineBuffer
-import generator.Generator
+import generator.ASMGenerator
 import lexer.Lexer
 import parser.Parser
 import utils.readResource
 import java.io.File
+import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
 
-fun main(args: Array<String>) {
+fun main() {
     val durationInMillis = measureTimeMillis {
-        val programLineBuffer = LineBuffer(readResource("script.he"));
+        try {
+            val programLineBuffer = LineBuffer(readResource("script.he"))
 
-        val lexer = Lexer(programLineBuffer)
-        val tokens = lexer.getTokens();
+            val lexer = Lexer(programLineBuffer)
+            val tokens = lexer.getTokens()
 
-        val parser = Parser(tokens);
-        val program = parser.parseProgram();
-        println(program);
+            val parser = Parser(programLineBuffer, tokens)
+            val statements = parser.parseProgram()
 
-        val generator = Generator(program);
-        val assembly = generator.generateAssembly();
+            val asmGenerator = ASMGenerator(statements)
+            val assembly = asmGenerator.generateAssembly()
 
-        File("asm/program.asm").printWriter().use {
-            it.print(assembly);
+            File("asm/program.asm").printWriter().use {
+                it.print(assembly)
+            }
+        } catch (e: Exception) {
+            System.err.println("An ERROR occurred while compiling your program!")
+            System.err.println(e.message)
+            exitProcess(1)
         }
     }
-    println("Compilation took ${durationInMillis/1000.0}s");
+    println("Compilation took ${durationInMillis / 1000.0}s")
 }

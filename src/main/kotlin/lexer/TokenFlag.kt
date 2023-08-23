@@ -13,5 +13,9 @@ enum class TokenFlag {
     ClosedBracket,
 
     Semicolon,;
+
+    override fun toString(): String {
+        return this.name
+    }
 }
 

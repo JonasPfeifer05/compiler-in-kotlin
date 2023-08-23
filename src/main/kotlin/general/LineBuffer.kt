@@ -3,10 +3,10 @@ package general
 import java.util.*
 
 class LineBuffer(programText: String) {
-    private val lines: List<String>;
+    private val lines: List<String>
 
     init {
-        this.lines = programText.lines();
+        this.lines = programText.lines()
     }
 
     fun getLineOptional(lineIndex: UInt): Optional<String> {
@@ -15,8 +15,8 @@ class LineBuffer(programText: String) {
 
         return Optional.of(
             this.lines[lineIndex.toInt()]
-        );
+        )
     }
 
-    fun lineCount(): UInt = this.lines.size.toUInt();
+    fun lineCount(): UInt = this.lines.size.toUInt()
 }
