@@ -32,6 +32,26 @@ class ASMBuilder(private val asmBuffer: StringBuilder) {
         this.stack.pushNumber()
     }
 
+    fun add(into: String, from: String) {
+        this.append("add $into, $from")
+    }
+
+    fun sub(into: String, from: String) {
+        this.append("sub $into, $from")
+    }
+
+    fun imul(into: String, from: String) {
+        this.append("imul $into, $from")
+    }
+
+    fun div(from: String) {
+        this.append("div $from")
+    }
+
+    fun xor(into: String, from: String) {
+        this.append("xor $into, $from")
+    }
+
     fun append(asmLine: String) {
         this.asmBuffer.append('\t').appendLine(asmLine)
     }

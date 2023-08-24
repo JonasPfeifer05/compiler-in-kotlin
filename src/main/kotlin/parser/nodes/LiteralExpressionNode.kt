@@ -1,15 +1,17 @@
 package parser.nodes
 
-import general.Register
 import generator.ASMBuilder
 
 class LiteralExpressionNode(private val name: String): ExpressionNode() {
-    override fun evaluate(asmBuilder: ASMBuilder, evalRegister: Register) {
-        asmBuilder.mov(
-            evalRegister.register,
+    override fun evaluate(asmBuilder: ASMBuilder) {
+        asmBuilder.push(
             asmBuilder.stackAddrWithOffset(
                 asmBuilder.getVariableOffset(this.name)
             )
         )
+    }
+
+    override fun toString(): String {
+        return this.name
     }
 }

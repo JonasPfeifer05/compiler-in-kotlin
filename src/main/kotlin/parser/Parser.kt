@@ -7,9 +7,7 @@ import general.LineBuffer
 import general.unreachable
 import lexer.Token
 import lexer.TokenFlag
-import parser.nodes.ExpressionNode
-import parser.nodes.LiteralExpressionNode
-import parser.nodes.NumberExpressionNode
+import parser.nodes.*
 import parser.statements.AssignStatement
 import parser.statements.ExitStatement
 import parser.statements.LetStatement
@@ -69,14 +67,59 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
         }
     }
 
-    private fun parseExpression(): ExpressionNode {
-        val token = this.expectNextTokenFlag(TokenFlag.Literal, TokenFlag.Number)
+    private fun parseExpression(): Expression {
+        return Expression(this.parseTerm())
+    }
 
-        return when (token.flag) {
+    private fun parseTerm(): ExpressionNode {
+        var left = this.parseFactor()
+
+        if (peekToken().isEmpty) return left
+
+        while (arrayOf(TokenFlag.Plus, TokenFlag.Minus).contains(peekToken().get().flag)) {
+            val operation = this.consumeToken()
+            val right = this.parseFactor()
+
+            left = OperationExpressionNode(left, operation.flag, right)
+        }
+
+        return left
+    }
+
+    private fun parseFactor(): ExpressionNode {
+        var left = this.parseSingleValue()
+
+        if (peekToken().isEmpty) return left
+
+        while (arrayOf(TokenFlag.Mul, TokenFlag.Div).contains(peekToken().get().flag)) {
+            val operation = this.consumeToken()
+            val right = this.parseSingleValue()
+
+            left = OperationExpressionNode(left, operation.flag, right)
+        }
+
+        return left
+    }
+
+    private fun parseSingleValue(): ExpressionNode {
+        val token = this.expectNextTokenFlag(TokenFlag.Literal, TokenFlag.Number, TokenFlag.OpenBracket)
+
+        val left = when (token.flag) {
             TokenFlag.Literal -> LiteralExpressionNode(token.value)
             TokenFlag.Number -> NumberExpressionNode(token.value)
+            TokenFlag.OpenBracket -> parseBracket()
             else -> unreachable()
         }
+
+        return left
+    }
+
+    private fun parseBracket(): ExpressionNode {
+        val value = this.parseTerm()
+
+        this.expectNextTokenFlag(TokenFlag.ClosedBracket)
+
+        return BracketExpressionNode(value)
     }
 
     private fun expectNextTokenFlag(vararg expectedFlags: TokenFlag): Token {

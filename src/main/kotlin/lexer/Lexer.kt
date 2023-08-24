@@ -51,6 +51,10 @@ class Lexer(private val lineBuffer: LineBuffer) {
             '(' -> Pair("(", TokenFlag.OpenBracket)
             ')' -> Pair(")", TokenFlag.ClosedBracket)
             '=' -> Pair("=", TokenFlag.Assign)
+            '+' -> Pair("+", TokenFlag.Plus)
+            '-' -> Pair("-", TokenFlag.Minus)
+            '*' -> Pair("*", TokenFlag.Mul)
+            '/' -> Pair("/", TokenFlag.Div)
             in LITERAL_RANGE -> {
                 val value = currentChar + this.readMatchingSequence { this in LITERAL_RANGE }
                 when (value) {

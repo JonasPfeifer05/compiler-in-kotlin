@@ -11,6 +11,11 @@ enum class TokenFlag {
 
     Assign,
 
+    Plus,
+    Minus,
+    Mul,
+    Div,
+
     OpenBracket,
     ClosedBracket,
 
@@ -18,6 +23,24 @@ enum class TokenFlag {
 
     override fun toString(): String {
         return this.name
+    }
+
+    fun getSymbol(): String {
+        return when (this) {
+            Useless -> ""
+            Exit -> "exit"
+            Let -> "let"
+            Literal -> "%literal%"
+            Number -> "%number%"
+            Assign -> "="
+            Plus -> "+"
+            Minus -> "-"
+            Mul -> "*"
+            Div -> "/"
+            OpenBracket -> "("
+            ClosedBracket -> ")"
+            Semicolon -> ";"
+        }
     }
 }
 

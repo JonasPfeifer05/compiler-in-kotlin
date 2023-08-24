@@ -1,9 +1,9 @@
 package parser.statements
 
 import generator.ASMBuilder
-import parser.nodes.ExpressionNode
+import parser.nodes.Expression
 
-class AssignStatement(private val name: String, private val expression: ExpressionNode): Statement() {
+class AssignStatement(private val name: String, private val expression: Expression): Statement() {
     override fun toAssembly(asmBuilder: ASMBuilder) {
         this.expression.evaluate(asmBuilder)
         asmBuilder.mov(
@@ -12,5 +12,9 @@ class AssignStatement(private val name: String, private val expression: Expressi
             ),
             "rax"
         )
+    }
+
+    override fun toString(): String {
+        return "$name = $expression;"
     }
 }

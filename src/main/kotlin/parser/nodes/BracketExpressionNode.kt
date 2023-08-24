@@ -2,12 +2,12 @@ package parser.nodes
 
 import generator.ASMBuilder
 
-class NumberExpressionNode(private val value: String): ExpressionNode() {
+class BracketExpressionNode(private val value: ExpressionNode): ExpressionNode() {
     override fun evaluate(asmBuilder: ASMBuilder) {
-        asmBuilder.push(value)
+        this.value.evaluate(asmBuilder)
     }
 
     override fun toString(): String {
-        return this.value
+        return "($value)"
     }
 }
