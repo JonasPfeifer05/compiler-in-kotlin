@@ -9,4 +9,8 @@ class StringDescriptor(private val length: UInt): TypeDescriptor() {
             offsetTo.toInt(), offsetFrom.toInt(), this.sizeOf()
         )
     }
+
+    override fun toString(): String {
+        return "String(${this.length})"
+    }
 }

@@ -1,8 +1,11 @@
 package parser.nodes
 
+import errors.generator.CrossOperationException
+import errors.generator.IllegalOperationException
 import general.Register
 import general.unreachable
 import generator.ASMBuilder
+import generator.types.StringDescriptor
 import generator.types.TypeDescriptor
 import generator.types.U64Descriptor
 import lexer.TokenFlag
@@ -13,27 +16,40 @@ class OperationExpressionNode(
     private val right: ExpressionNode,
 ): ExpressionNode() {
     override fun evaluate(asmBuilder: ASMBuilder): TypeDescriptor {
-        this.left.evaluate(asmBuilder)
-        this.right.evaluate(asmBuilder)
+        val rightType = this.right.evaluate(asmBuilder)
+        val leftType = this.left.evaluate(asmBuilder)
 
-        asmBuilder.pop(Register.SecondaryCalculation.register)
-        asmBuilder.pop(Register.PrimaryCalculation.register)
+        if (leftType::class != rightType::class)
+            throw CrossOperationException(this.operation, leftType, rightType)
 
-        when (this.operation) {
-            TokenFlag.Plus -> asmBuilder.add(Register.PrimaryCalculation.register, Register.SecondaryCalculation.register)
-            TokenFlag.Minus -> asmBuilder.sub(Register.PrimaryCalculation.register, Register.SecondaryCalculation.register)
-            TokenFlag.Mul -> asmBuilder.imul(Register.PrimaryCalculation.register, Register.SecondaryCalculation.register)
-            TokenFlag.Div -> {
-                // The rdx register is needed by the div operation because of this we set the register to 0 by xor with itself
-                asmBuilder.xor("rdx", "rdx")
-                asmBuilder.div(Register.SecondaryCalculation.register)
+        when (leftType) {
+            is StringDescriptor -> {
+                return when (this.operation) {
+                    TokenFlag.Plus -> StringDescriptor(leftType.sizeOf() + rightType.sizeOf())
+                    else -> throw IllegalOperationException(this.operation, leftType, rightType)
+                }
+            }
+            is U64Descriptor -> {
+                asmBuilder.pop(Register.PrimaryCalculation.register)
+                asmBuilder.pop(Register.SecondaryCalculation.register)
+
+                when (this.operation) {
+                    TokenFlag.Plus -> asmBuilder.add(Register.PrimaryCalculation.register, Register.SecondaryCalculation.register)
+                    TokenFlag.Minus -> asmBuilder.sub(Register.PrimaryCalculation.register, Register.SecondaryCalculation.register)
+                    TokenFlag.Mul -> asmBuilder.imul(Register.PrimaryCalculation.register, Register.SecondaryCalculation.register)
+                    TokenFlag.Div -> {
+                        // The rdx register is needed by the div operation because of this we set the register to 0 by xor with itself
+                        asmBuilder.xor("rdx", "rdx")
+                        asmBuilder.div(Register.SecondaryCalculation.register)
+                    }
+                    else -> unreachable()
+                }
+
+                asmBuilder.push(Register.PrimaryCalculation.register)
+                return U64Descriptor()
             }
             else -> unreachable()
         }
-
-        asmBuilder.push(Register.PrimaryCalculation.register)
-
-        return U64Descriptor
     }
 
     override fun toString(): String {

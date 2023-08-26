@@ -1,3 +1,4 @@
-let a = "JonasPfeifer";
+let a = "abc";
+let b = "test: " + a + "def" + "ghi";
 
-print(a);
+print(b);

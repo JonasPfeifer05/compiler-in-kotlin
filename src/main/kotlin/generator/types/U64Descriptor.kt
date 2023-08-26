@@ -2,7 +2,7 @@ package generator.types
 
 import generator.ASMBuilder
 
-data object U64Descriptor : TypeDescriptor() {
+class U64Descriptor : TypeDescriptor() {
     override fun sizeOf(): UInt = 8u
     override fun copyTo(offsetTo: UInt, offsetFrom: UInt, asmBuilder: ASMBuilder) {
         asmBuilder.mov(
@@ -13,5 +13,9 @@ data object U64Descriptor : TypeDescriptor() {
             asmBuilder.pointerWithOffset("rsp", offsetTo.toInt()),
             "rax"
         )
+    }
+
+    override fun toString(): String {
+        return "U64"
     }
 }
