@@ -11,6 +11,9 @@ enum class TokenFlag {
     IdentifierLiteral,
     NumberLiteral,
 
+    U64Type,
+    StringType,
+
     Assign,
 
     Plus,
@@ -18,9 +21,12 @@ enum class TokenFlag {
     Mul,
     Div,
 
+    OpenParent,
+    ClosedParent,
     OpenBracket,
     ClosedBracket,
 
+    Colon,
     Semicolon,;
 
     override fun toString(): String {
@@ -39,11 +45,16 @@ enum class TokenFlag {
             Minus -> "-"
             Mul -> "*"
             Div -> "/"
-            OpenBracket -> "("
-            ClosedBracket -> ")"
+            OpenParent -> "("
+            ClosedParent -> ")"
             Semicolon -> ";"
             StringLiteral -> "string"
             Print -> "print"
+            U64Type -> "u64"
+            StringType -> "string"
+            Colon -> ":"
+            OpenBracket -> "["
+            ClosedBracket -> "]"
         }
     }
 }

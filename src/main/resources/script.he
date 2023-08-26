@@ -1,4 +1,5 @@
-let a = "abc";
-let b = "test: " + a + "def" + "ghi";
+let b: u64;
 
-print(b);
+b = 10;
+
+exit(b);

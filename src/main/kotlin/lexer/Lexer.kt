@@ -6,7 +6,8 @@ import general.LineBuffer
 import java.util.Optional
 import kotlin.jvm.optionals.getOrDefault
 
-val LITERAL_RANGE = 'a'..'z'
+val LITERAL_BEGIN_RANGE = 'A'..'z'
+val LITERAL_BODY_RANGE = 'A'..'z'
 val NUMBER_RANGE = '0'..'9'
 
 val EMPTY_CHARACTERS = charArrayOf(' ', '\t')
@@ -49,19 +50,24 @@ class Lexer(private val lineBuffer: LineBuffer) {
         val tokenStartIndex = this.previousCharIndex()
         val (value, flag) = when (currentChar) {
             ';' -> Pair(";", TokenFlag.Semicolon)
-            '(' -> Pair("(", TokenFlag.OpenBracket)
-            ')' -> Pair(")", TokenFlag.ClosedBracket)
+            ':' -> Pair(";", TokenFlag.Colon)
+            '(' -> Pair("(", TokenFlag.OpenParent)
+            ')' -> Pair(")", TokenFlag.ClosedParent)
+            '[' -> Pair(")", TokenFlag.OpenBracket)
+            ']' -> Pair(")", TokenFlag.ClosedBracket)
             '=' -> Pair("=", TokenFlag.Assign)
             '+' -> Pair("+", TokenFlag.Plus)
             '-' -> Pair("-", TokenFlag.Minus)
             '*' -> Pair("*", TokenFlag.Mul)
             '/' -> Pair("/", TokenFlag.Div)
-            in LITERAL_RANGE -> {
-                val value = currentChar + this.readMatchingSequence { this in LITERAL_RANGE }
+            in LITERAL_BEGIN_RANGE -> {
+                val value = currentChar + this.readMatchingSequence { this in LITERAL_BODY_RANGE || this in NUMBER_RANGE }
                 when (value) {
                     "exit" -> Pair(value, TokenFlag.Exit)
                     "let" -> Pair(value, TokenFlag.Let)
                     "print" -> Pair(value, TokenFlag.Print)
+                    "u64" -> Pair(value, TokenFlag.U64Type)
+                    "string" -> Pair(value, TokenFlag.StringType)
                     else -> Pair(value, TokenFlag.IdentifierLiteral)
                 }
             }

@@ -5,6 +5,9 @@ import errors.parser.RanOutOfTokensButExpectedTokenException
 import errors.parser.UnexpectedTokenException
 import general.LineBuffer
 import general.unreachable
+import generator.types.StringDescriptor
+import generator.types.TypeDescriptor
+import generator.types.U64Descriptor
 import lexer.Token
 import lexer.TokenFlag
 import parser.nodes.*
@@ -29,11 +32,11 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
         when (startToken.flag) {
             TokenFlag.Exit -> {
-                this.expectNextTokenFlag(TokenFlag.OpenBracket)
+                this.expectNextTokenFlag(TokenFlag.OpenParent)
 
                 val expression = this.parseExpression()
 
-                this.expectNextTokenFlag(TokenFlag.ClosedBracket)
+                this.expectNextTokenFlag(TokenFlag.ClosedParent)
                 this.expectNextTokenFlag(TokenFlag.Semicolon)
 
                 return ExitStatement(expression)
@@ -41,20 +44,25 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             TokenFlag.Let -> {
                 val name = this.expectNextTokenFlag(TokenFlag.IdentifierLiteral).value
 
-                this.expectNextTokenFlag(TokenFlag.Assign)
+                val type = this.parseType()
+
+                val token = this.expectNextTokenFlag(TokenFlag.Assign, TokenFlag.Semicolon)
+
+                if (token.flag == TokenFlag.Semicolon)
+                    return LetStatement(name, type, null)
 
                 val expression = this.parseExpression()
 
                 this.expectNextTokenFlag(TokenFlag.Semicolon)
 
-                return LetStatement(name, expression)
+                return LetStatement(name, type, expression)
             }
             TokenFlag.Print -> {
-                this.expectNextTokenFlag(TokenFlag.OpenBracket)
+                this.expectNextTokenFlag(TokenFlag.OpenParent)
 
                 val expression = this.parseExpression()
 
-                this.expectNextTokenFlag(TokenFlag.ClosedBracket)
+                this.expectNextTokenFlag(TokenFlag.ClosedParent)
                 this.expectNextTokenFlag(TokenFlag.Semicolon)
 
                 return PrintStatement(expression)
@@ -71,6 +79,18 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
                 return AssignStatement(name, expression)
             }
             else -> throw UnexpectedTokenException(startToken)
+        }
+    }
+
+    private fun parseType(): TypeDescriptor {
+        this.expectNextTokenFlag(TokenFlag.Colon)
+
+        val type = this.expectNextTokenFlag(TokenFlag.U64Type, TokenFlag.StringType)
+
+        return when (type.flag) {
+            TokenFlag.U64Type -> U64Descriptor()
+            TokenFlag.StringType -> StringDescriptor(5u)
+            else -> unreachable()
         }
     }
 
@@ -112,14 +132,14 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
         val token = this.expectNextTokenFlag(
             TokenFlag.IdentifierLiteral,
             TokenFlag.NumberLiteral,
-            TokenFlag.OpenBracket,
+            TokenFlag.OpenParent,
             TokenFlag.StringLiteral
         )
 
         val left = when (token.flag) {
             TokenFlag.IdentifierLiteral -> IdentifierLiteralExpressionNode(token.value)
             TokenFlag.NumberLiteral -> NumberLiteralExpressionNode(token.value)
-            TokenFlag.OpenBracket -> parseBracket()
+            TokenFlag.OpenParent -> parseBracket()
             TokenFlag.StringLiteral -> StringLiteralExpressionNode(token.value)
             else -> unreachable()
         }
@@ -130,7 +150,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
     private fun parseBracket(): ExpressionNode {
         val value = this.parseTerm()
 
-        this.expectNextTokenFlag(TokenFlag.ClosedBracket)
+        this.expectNextTokenFlag(TokenFlag.ClosedParent)
 
         return BracketExpressionNode(value)
     }
