@@ -18,9 +18,16 @@ class ASMBuilder(private val asmBuffer: StringBuilder) {
         this.append("ret")
     }
 
-    fun memcpy(offsetTo: Int, offsetFrom: Int, bytes: UInt) {
+    fun memcpy(offsetTo: Int, offsetFrom: Int, bytes: Int) {
         this.lea("rdi", "rsp", offsetTo)
         this.lea("rsi", "rsp", offsetFrom)
+        this.mov("rdx", bytes.toString())
+        this.call("memcpy")
+    }
+
+    fun memcpy(offsetTo: Int, offsetFrom: String, bytes: Int) {
+        this.lea("rdi", "rsp", offsetTo)
+        this.mov("rsi", offsetFrom)
         this.mov("rdx", bytes.toString())
         this.call("memcpy")
     }
@@ -33,17 +40,17 @@ class ASMBuilder(private val asmBuffer: StringBuilder) {
         this.append("lea $into, ${pointerWithOffset(from, offset)}")
     }
 
-    fun growStack(bytes: UInt) {
+    fun growStack(bytes: Int) {
         this.sub("rsp", bytes.toString())
         this.stack.grow(bytes)
     }
 
-    fun shrinkStack(bytes: UInt) {
+    fun shrinkStack(bytes: Int) {
         this.add("rsp", bytes.toString())
         this.stack.shrink(bytes)
     }
 
-    fun getVariable(name: String): Pair<UInt, TypeDescriptor> {
+    fun getVariable(name: String): Pair<Int, TypeDescriptor> {
         if (!this.lookupTable.doesVariablesExits(name))
             throw UnknownVariableException(name)
 
@@ -54,10 +61,10 @@ class ASMBuilder(private val asmBuffer: StringBuilder) {
         this.lookupTable.registerNewVariable(name, type)
     }
 
-    private fun stackSize(): UInt = this.stack.getCurrentStackSize()
+    private fun stackSize(): Int = this.stack.getCurrentStackSize()
 
-    fun offsetToVariable(variable: Pair<UInt, TypeDescriptor>): Int {
-        return this.stackSize().toInt() - variable.first.toInt()
+    fun offsetToVariable(variable: Pair<Int, TypeDescriptor>): Int {
+        return this.stackSize() - variable.first
     }
 
     fun pointerWithOffset(from: String, offset: Int, size: MemorySizes? = null): String {

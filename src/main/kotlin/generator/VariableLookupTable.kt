@@ -3,7 +3,7 @@ package generator
 import generator.types.TypeDescriptor
 
 class VariableLookupTable(private val stack: VirtualStackDescriptor) {
-    private val variableToStackPointer: HashMap<String, Pair<UInt, TypeDescriptor>> = HashMap()
+    private val variableToStackPointer: HashMap<String, Pair<Int, TypeDescriptor>> = HashMap()
 
     fun doesVariablesExits(name: String): Boolean = variableToStackPointer.containsKey(name)
 
@@ -14,7 +14,7 @@ class VariableLookupTable(private val stack: VirtualStackDescriptor) {
         )
     }
 
-    fun getVariable(name: String): Pair<UInt, TypeDescriptor> {
+    fun getVariable(name: String): Pair<Int, TypeDescriptor> {
         return this.variableToStackPointer[name]!!
     }
 }

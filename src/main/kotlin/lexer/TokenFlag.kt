@@ -26,6 +26,7 @@ enum class TokenFlag {
     OpenBracket,
     ClosedBracket,
 
+    Comma,
     Colon,
     Semicolon,;
 
@@ -48,6 +49,7 @@ enum class TokenFlag {
             OpenParent -> "("
             ClosedParent -> ")"
             Semicolon -> ";"
+            Comma -> ","
             StringLiteral -> "string"
             Print -> "print"
             U64Type -> "u64"

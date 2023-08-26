@@ -1,10 +1,12 @@
 package parser
 
+import errors.generator.InvalidArrayLengthException
 import errors.parser.FoundUnexpectedTokenException
 import errors.parser.RanOutOfTokensButExpectedTokenException
 import errors.parser.UnexpectedTokenException
 import general.LineBuffer
 import general.unreachable
+import generator.types.ArrayDescriptor
 import generator.types.StringDescriptor
 import generator.types.TypeDescriptor
 import generator.types.U64Descriptor
@@ -41,6 +43,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
                 return ExitStatement(expression)
             }
+
             TokenFlag.Let -> {
                 val name = this.expectNextTokenFlag(TokenFlag.IdentifierLiteral).value
 
@@ -57,6 +60,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
                 return LetStatement(name, type, expression)
             }
+
             TokenFlag.Print -> {
                 this.expectNextTokenFlag(TokenFlag.OpenParent)
 
@@ -67,6 +71,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
                 return PrintStatement(expression)
             }
+
             TokenFlag.IdentifierLiteral -> {
                 val name = startToken.value
 
@@ -78,6 +83,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
                 return AssignStatement(name, expression)
             }
+
             else -> throw UnexpectedTokenException(startToken)
         }
     }
@@ -85,13 +91,30 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
     private fun parseType(): TypeDescriptor {
         this.expectNextTokenFlag(TokenFlag.Colon)
 
+        var descriptor: TypeDescriptor
         val type = this.expectNextTokenFlag(TokenFlag.U64Type, TokenFlag.StringType)
 
-        return when (type.flag) {
+        descriptor = when (type.flag) {
             TokenFlag.U64Type -> U64Descriptor()
-            TokenFlag.StringType -> StringDescriptor(5u)
+            TokenFlag.StringType -> StringDescriptor(5)
             else -> unreachable()
         }
+
+        while (true) {
+
+            val peek = isPeekCertainTokenFlag(TokenFlag.OpenBracket)
+            if (peek.isPresent) {
+                this.consumeToken()
+                val length = this.expectNextTokenFlag(TokenFlag.NumberLiteral).value.toInt()
+                this.expectNextTokenFlag(TokenFlag.ClosedBracket)
+
+                if (length <= 0) throw InvalidArrayLengthException(length)
+
+                descriptor = ArrayDescriptor(descriptor, length)
+            } else break
+        }
+
+        return descriptor
     }
 
     private fun parseExpression(): Expression {
@@ -133,21 +156,43 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             TokenFlag.IdentifierLiteral,
             TokenFlag.NumberLiteral,
             TokenFlag.OpenParent,
-            TokenFlag.StringLiteral
+            TokenFlag.StringLiteral,
+            TokenFlag.OpenBracket,
         )
 
         val left = when (token.flag) {
             TokenFlag.IdentifierLiteral -> IdentifierLiteralExpressionNode(token.value)
             TokenFlag.NumberLiteral -> NumberLiteralExpressionNode(token.value)
-            TokenFlag.OpenParent -> parseBracket()
+            TokenFlag.OpenParent -> parseEnclosedExpression()
             TokenFlag.StringLiteral -> StringLiteralExpressionNode(token.value)
+            TokenFlag.OpenBracket -> parseArray()
             else -> unreachable()
+        }
+
+        val peek = this.isPeekCertainTokenFlag(TokenFlag.OpenBracket)
+        if (peek.isPresent) {
+            this.consumeToken()
+            val index = this.parseTerm()
+            this.expectNextTokenFlag(TokenFlag.ClosedBracket)
+            return AccessExpressionNode(left, index)
         }
 
         return left
     }
 
-    private fun parseBracket(): ExpressionNode {
+    private fun parseArray(): ExpressionNode {
+        val values: MutableList<ExpressionNode> = mutableListOf()
+        while (true) {
+            values.add(this.parseTerm())
+            val comma = this.isPeekCertainTokenFlag(TokenFlag.Comma)
+            if (comma.isEmpty) break
+            this.consumeToken()
+        }
+        this.expectNextTokenFlag(TokenFlag.ClosedBracket)
+        return ArrayExpressionNode(values)
+    }
+
+    private fun parseEnclosedExpression(): ExpressionNode {
         val value = this.parseTerm()
 
         this.expectNextTokenFlag(TokenFlag.ClosedParent)
@@ -155,11 +200,26 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
         return BracketExpressionNode(value)
     }
 
+    private fun isPeekCertainTokenFlag(vararg expectedFlags: TokenFlag): Optional<Token> {
+        if (this.peekToken().isEmpty) return Optional.empty()
+
+        if (expectedFlags.contains(this.peekToken().get().flag)) return this.peekToken()
+        return Optional.empty()
+    }
+
     private fun expectNextTokenFlag(vararg expectedFlags: TokenFlag): Token {
-        if (this.peekToken().isEmpty) throw RanOutOfTokensButExpectedTokenException(expectedFlags, this.previousToken().tokenLocation.lineIndex, this.lineBuffer)
+        if (this.peekToken().isEmpty) throw RanOutOfTokensButExpectedTokenException(
+            expectedFlags,
+            this.previousToken().tokenLocation.lineIndex,
+            this.lineBuffer
+        )
 
         val token = this.consumeToken()
-        if (!expectedFlags.contains(token.flag)) throw FoundUnexpectedTokenException(token, expectedFlags, this.lineBuffer)
+        if (!expectedFlags.contains(token.flag)) throw FoundUnexpectedTokenException(
+            token,
+            expectedFlags,
+            this.lineBuffer
+        )
 
         return token
     }

@@ -20,6 +20,7 @@ class LetStatement(private val name: String, private val type: TypeDescriptor, p
     }
 
     override fun toString(): String {
-        return "let $name = $expression;"
+        if (this.expression == null) return "let $name: $type;"
+        return "let $name: $type = $expression;"
     }
 }

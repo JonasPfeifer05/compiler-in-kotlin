@@ -1,23 +1,23 @@
 package generator
 
 class VirtualStackDescriptor {
-    private var currentSize: UInt = 0u
+    private var currentSize: Int = 0
 
-    fun grow(bytes: UInt) {
+    fun grow(bytes: Int) {
         currentSize += bytes
     }
 
-    fun shrink(bytes: UInt) {
+    fun shrink(bytes: Int) {
         currentSize -= bytes
     }
 
     fun pushNumber() {
-        this.currentSize += 8u
+        this.currentSize += 8
     }
 
     fun popNumber() {
-        this.currentSize -= 8u
+        this.currentSize -= 8
     }
 
-    fun getCurrentStackSize(): UInt = this.currentSize
+    fun getCurrentStackSize(): Int = this.currentSize
 }

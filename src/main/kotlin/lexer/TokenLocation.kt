@@ -1,3 +1,3 @@
 package lexer
 
-data class TokenLocation(val lineIndex: UInt, val sectionIndex: UIntRange)
+data class TokenLocation(val lineIndex: Int, val sectionIndex: IntRange)

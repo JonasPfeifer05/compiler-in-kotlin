@@ -9,14 +9,14 @@ class LineBuffer(programText: String) {
         this.lines = programText.lines()
     }
 
-    fun getLineOptional(lineIndex: UInt): Optional<String> {
-        if (lineIndex.toInt() > this.lines.lastIndex)
+    fun getLineOptional(lineIndex: Int): Optional<String> {
+        if (lineIndex > this.lines.lastIndex)
             return Optional.empty()
 
         return Optional.of(
-            this.lines[lineIndex.toInt()]
+            this.lines[lineIndex]
         )
     }
 
-    fun lineCount(): UInt = this.lines.size.toUInt()
+    fun lineCount(): Int = this.lines.size
 }

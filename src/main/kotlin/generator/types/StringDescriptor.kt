@@ -2,11 +2,11 @@ package generator.types
 
 import generator.ASMBuilder
 
-class StringDescriptor(private val length: UInt): TypeDescriptor() {
-    override fun sizeOf(): UInt = this.length
-    override fun copyTo(offsetTo: UInt, offsetFrom: UInt, asmBuilder: ASMBuilder) {
+class StringDescriptor(private val length: Int): TypeDescriptor() {
+    override fun sizeOf(): Int = this.length
+    override fun copyTo(offsetTo: Int, offsetFrom: Int, asmBuilder: ASMBuilder) {
         asmBuilder.memcpy(
-            offsetTo.toInt(), offsetFrom.toInt(), this.sizeOf()
+            offsetTo, offsetFrom, this.sizeOf()
         )
     }
 

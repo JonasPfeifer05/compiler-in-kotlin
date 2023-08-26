@@ -32,7 +32,7 @@ class StringLiteralExpressionNode(private val value: String): ExpressionNode() {
         }
 
         if (chunk1 != null) {
-            asmBuilder.growStack(1u)
+            asmBuilder.growStack(1)
             asmBuilder.mov(
                 asmBuilder.pointerWithOffset("rsp", 0, MemorySizes.Byte),
                 "`$chunk1`"
@@ -40,7 +40,7 @@ class StringLiteralExpressionNode(private val value: String): ExpressionNode() {
         }
 
         if (chunk2 != null) {
-            asmBuilder.growStack(2u)
+            asmBuilder.growStack(2)
             asmBuilder.mov(
                 asmBuilder.pointerWithOffset("rsp", 0, MemorySizes.Word),
                 "`$chunk2`"
@@ -48,7 +48,7 @@ class StringLiteralExpressionNode(private val value: String): ExpressionNode() {
         }
 
         if (chunk4 != null) {
-            asmBuilder.growStack(4u)
+            asmBuilder.growStack(4)
             asmBuilder.mov(
                 asmBuilder.pointerWithOffset("rsp", 0, MemorySizes.DWord),
                 "`$chunk4`"
@@ -60,7 +60,7 @@ class StringLiteralExpressionNode(private val value: String): ExpressionNode() {
             asmBuilder.push("rax")
         }
 
-        return StringDescriptor(this.value.length.toUInt())
+        return StringDescriptor(this.value.length)
     }
 
     override fun toString(): String {
