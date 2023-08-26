@@ -1,12 +1,11 @@
 package parser.nodes
 
-import general.Register
 import generator.ASMBuilder
+import generator.types.TypeDescriptor
 
 class Expression(private val value: ExpressionNode) {
-    fun evaluate(asmBuilder: ASMBuilder, evalRegister: Register = Register.PrimaryCalculation) {
-        this.value.evaluate(asmBuilder)
-        asmBuilder.pop(evalRegister.register)
+    fun evaluate(asmBuilder: ASMBuilder): TypeDescriptor {
+        return this.value.evaluate(asmBuilder)
     }
 
     override fun toString(): String {

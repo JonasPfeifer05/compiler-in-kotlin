@@ -2,13 +2,15 @@ package parser.nodes
 
 import generator.ASMBuilder
 import generator.types.TypeDescriptor
+import generator.types.U64Descriptor
 
-class BracketExpressionNode(private val value: ExpressionNode): ExpressionNode() {
+class NumberLiteralExpressionNode(private val value: String): ExpressionNode() {
     override fun evaluate(asmBuilder: ASMBuilder): TypeDescriptor {
-        return this.value.evaluate(asmBuilder)
+        asmBuilder.push(value)
+        return U64Descriptor
     }
 
     override fun toString(): String {
-        return "($value)"
+        return this.value
     }
 }

@@ -3,6 +3,8 @@ package parser.nodes
 import general.Register
 import general.unreachable
 import generator.ASMBuilder
+import generator.types.TypeDescriptor
+import generator.types.U64Descriptor
 import lexer.TokenFlag
 
 class OperationExpressionNode(
@@ -10,7 +12,7 @@ class OperationExpressionNode(
     private val operation: TokenFlag,
     private val right: ExpressionNode,
 ): ExpressionNode() {
-    override fun evaluate(asmBuilder: ASMBuilder) {
+    override fun evaluate(asmBuilder: ASMBuilder): TypeDescriptor {
         this.left.evaluate(asmBuilder)
         this.right.evaluate(asmBuilder)
 
@@ -30,6 +32,8 @@ class OperationExpressionNode(
         }
 
         asmBuilder.push(Register.PrimaryCalculation.register)
+
+        return U64Descriptor
     }
 
     override fun toString(): String {

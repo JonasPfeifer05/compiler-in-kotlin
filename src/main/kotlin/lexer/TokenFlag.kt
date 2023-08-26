@@ -5,9 +5,11 @@ enum class TokenFlag {
 
     Exit,
     Let,
+    Print,
 
-    Literal,
-    Number,
+    StringLiteral,
+    IdentifierLiteral,
+    NumberLiteral,
 
     Assign,
 
@@ -30,8 +32,8 @@ enum class TokenFlag {
             Useless -> ""
             Exit -> "exit"
             Let -> "let"
-            Literal -> "%literal%"
-            Number -> "%number%"
+            IdentifierLiteral -> "%literal%"
+            NumberLiteral -> "%number%"
             Assign -> "="
             Plus -> "+"
             Minus -> "-"
@@ -40,6 +42,8 @@ enum class TokenFlag {
             OpenBracket -> "("
             ClosedBracket -> ")"
             Semicolon -> ";"
+            StringLiteral -> "string"
+            Print -> "print"
         }
     }
 }

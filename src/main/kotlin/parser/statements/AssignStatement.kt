@@ -5,13 +5,13 @@ import parser.nodes.Expression
 
 class AssignStatement(private val name: String, private val expression: Expression): Statement() {
     override fun toAssembly(asmBuilder: ASMBuilder) {
-        this.expression.evaluate(asmBuilder)
-        asmBuilder.mov(
-            asmBuilder.stackAddrWithOffset(
-                asmBuilder.getVariableOffset(name)
-            ),
-            "rax"
+        val variable = asmBuilder.getVariable(name)
+        val type = this.expression.evaluate(asmBuilder)
+
+        asmBuilder.memcpy(
+            asmBuilder.offsetToVariable(variable), 0, type.sizeOf()
         )
+        asmBuilder.shrinkStack(type.sizeOf())
     }
 
     override fun toString(): String {

@@ -8,10 +8,7 @@ import general.unreachable
 import lexer.Token
 import lexer.TokenFlag
 import parser.nodes.*
-import parser.statements.AssignStatement
-import parser.statements.ExitStatement
-import parser.statements.LetStatement
-import parser.statements.Statement
+import parser.statements.*
 import java.util.*
 
 class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>) {
@@ -42,7 +39,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
                 return ExitStatement(expression)
             }
             TokenFlag.Let -> {
-                val name = this.expectNextTokenFlag(TokenFlag.Literal).value
+                val name = this.expectNextTokenFlag(TokenFlag.IdentifierLiteral).value
 
                 this.expectNextTokenFlag(TokenFlag.Assign)
 
@@ -52,7 +49,17 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
                 return LetStatement(name, expression)
             }
-            TokenFlag.Literal -> {
+            TokenFlag.Print -> {
+                this.expectNextTokenFlag(TokenFlag.OpenBracket)
+
+                val expression = this.parseExpression()
+
+                this.expectNextTokenFlag(TokenFlag.ClosedBracket)
+                this.expectNextTokenFlag(TokenFlag.Semicolon)
+
+                return PrintStatement(expression)
+            }
+            TokenFlag.IdentifierLiteral -> {
                 val name = startToken.value
 
                 this.expectNextTokenFlag(TokenFlag.Assign)
@@ -102,12 +109,18 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
     }
 
     private fun parseSingleValue(): ExpressionNode {
-        val token = this.expectNextTokenFlag(TokenFlag.Literal, TokenFlag.Number, TokenFlag.OpenBracket)
+        val token = this.expectNextTokenFlag(
+            TokenFlag.IdentifierLiteral,
+            TokenFlag.NumberLiteral,
+            TokenFlag.OpenBracket,
+            TokenFlag.StringLiteral
+        )
 
         val left = when (token.flag) {
-            TokenFlag.Literal -> LiteralExpressionNode(token.value)
-            TokenFlag.Number -> NumberExpressionNode(token.value)
+            TokenFlag.IdentifierLiteral -> IdentifierLiteralExpressionNode(token.value)
+            TokenFlag.NumberLiteral -> NumberLiteralExpressionNode(token.value)
             TokenFlag.OpenBracket -> parseBracket()
+            TokenFlag.StringLiteral -> StringLiteralExpressionNode(token.value)
             else -> unreachable()
         }
 

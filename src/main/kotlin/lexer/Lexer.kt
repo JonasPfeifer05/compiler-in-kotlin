@@ -1,5 +1,6 @@
 package lexer
 
+import errors.lexer.NonTerminatedStringException
 import errors.lexer.UnknownCharException
 import general.LineBuffer
 import java.util.Optional
@@ -60,14 +61,19 @@ class Lexer(private val lineBuffer: LineBuffer) {
                 when (value) {
                     "exit" -> Pair(value, TokenFlag.Exit)
                     "let" -> Pair(value, TokenFlag.Let)
-                    else -> Pair(value, TokenFlag.Literal)
+                    "print" -> Pair(value, TokenFlag.Print)
+                    else -> Pair(value, TokenFlag.IdentifierLiteral)
                 }
             }
 
             in NUMBER_RANGE -> Pair(
                 currentChar + this.readMatchingSequence { this in NUMBER_RANGE },
-                TokenFlag.Number,
+                TokenFlag.NumberLiteral,
             )
+
+            '"' -> {
+                Pair(this.readString(tokenStartIndex), TokenFlag.StringLiteral)
+            }
 
             else ->
                 throw UnknownCharException(
@@ -80,6 +86,25 @@ class Lexer(private val lineBuffer: LineBuffer) {
         return Optional.of(
             Token(value, flag, TokenLocation(this.lineIndex, tokenStartIndex..this.previousCharIndex()))
         )
+    }
+
+    private fun readString(tokenStartIndex: UInt): String {
+        val builder = StringBuilder()
+
+        var peekChar = this.peekChar()
+        while (peekChar.isPresent && peekChar.get() != '"') {
+            builder.append(
+                this.consumeChar()
+            )
+
+            peekChar = this.peekChar()
+        }
+        if (peekChar.isEmpty)
+            throw NonTerminatedStringException(TokenLocation(this.lineIndex, tokenStartIndex..this.charIndex), this.lineBuffer.getLineOptional(this.lineIndex).get())
+
+        this.consumeChar()
+
+        return builder.toString()
     }
 
     private fun readMatchingSequence(doesMatch: Char.() -> Boolean): String {

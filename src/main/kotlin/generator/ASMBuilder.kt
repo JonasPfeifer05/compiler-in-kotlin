@@ -1,23 +1,72 @@
 package generator
 
 import errors.generator.UnknownVariableException
+import generator.types.TypeDescriptor
+import kotlin.math.absoluteValue
 
 class ASMBuilder(private val asmBuffer: StringBuilder) {
     private val stack = VirtualStackDescriptor()
-    val lookupTable = VariableLookupTable(stack)
+    private val lookupTable = VariableLookupTable(stack)
 
-    fun init() {
-        this.asmBuffer.appendLine("global _start")
-        this.asmBuffer.appendLine("_start:")
+    fun stackFrameStart() {
+        this.push("rbp")
+        this.mov("rbp", "rsp")
     }
 
-    fun stackAddrWithOffset(offset: UInt): String = "QWORD [rsp + $offset]"
+    fun stackFrameEnd() {
+        this.mov("rsp", "rbp")
+        this.append("ret")
+    }
 
-    fun getVariableOffset(name: String): UInt {
+    fun memcpy(offsetTo: Int, offsetFrom: Int, bytes: UInt) {
+        this.lea("rdi", "rsp", offsetTo)
+        this.lea("rsi", "rsp", offsetFrom)
+        this.mov("rdx", bytes.toString())
+        this.call("memcpy")
+    }
+
+    fun call(name: String) {
+        this.append("call $name")
+    }
+
+    fun lea(into: String, from: String, offset: Int) {
+        this.append("lea $into, ${pointerWithOffset(from, offset)}")
+    }
+
+    fun growStack(bytes: UInt) {
+        this.sub("rsp", bytes.toString())
+        this.stack.grow(bytes)
+    }
+
+    fun shrinkStack(bytes: UInt) {
+        this.add("rsp", bytes.toString())
+        this.stack.shrink(bytes)
+    }
+
+    fun getVariable(name: String): Pair<UInt, TypeDescriptor> {
         if (!this.lookupTable.doesVariablesExits(name))
             throw UnknownVariableException(name)
 
-        return this.stack.getCurrentStackSize() - this.lookupTable.getVariablePosition(name)
+        return this.lookupTable.getVariable(name)
+    }
+
+    fun registerVariable(name: String, type: TypeDescriptor) {
+        this.lookupTable.registerNewVariable(name, type)
+    }
+
+    private fun stackSize(): UInt = this.stack.getCurrentStackSize()
+
+    fun offsetToVariable(variable: Pair<UInt, TypeDescriptor>): Int {
+        return this.stackSize().toInt() - variable.first.toInt()
+    }
+
+    fun pointerWithOffset(from: String, offset: Int, size: MemorySizes? = null): String {
+        val sizeString = size?.toString() ?: ""
+        return if (offset >= 0) {
+            "$sizeString [$from + ${offset.absoluteValue}]"
+        } else {
+            "$sizeString [$from - ${offset.absoluteValue}]"
+        }
     }
 
     fun mov(into: String, from: String) = this.append("mov $into, $from")
@@ -57,4 +106,7 @@ class ASMBuilder(private val asmBuffer: StringBuilder) {
     }
 
     override fun toString(): String = this.asmBuffer.toString()
+    fun appendWithoutIndent(text: String) {
+        this.asmBuffer.appendLine(text)
+    }
 }

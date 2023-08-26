@@ -5,9 +5,9 @@ import parser.nodes.Expression
 
 class LetStatement(private val name: String, private val expression: Expression): Statement() {
     override fun toAssembly(asmBuilder: ASMBuilder) {
-        this.expression.evaluate(asmBuilder)
-        asmBuilder.push("rax")
-        asmBuilder.lookupTable.registerNewVariable(name)
+        val type = this.expression.evaluate(asmBuilder)
+
+        asmBuilder.registerVariable(name, type)
     }
 
     override fun toString(): String {
