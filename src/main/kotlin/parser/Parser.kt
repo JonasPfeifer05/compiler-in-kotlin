@@ -7,6 +7,7 @@ import errors.parser.UnexpectedTokenException
 import general.LineBuffer
 import general.unreachable
 import generator.types.ArrayDescriptor
+import generator.types.PointerDescriptor
 import generator.types.TypeDescriptor
 import generator.types.U64Descriptor
 import lexer.Token
@@ -93,6 +94,12 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
     private fun parseType(): TypeDescriptor {
         this.expectNextTokenFlag(TokenFlag.Colon)
 
+        var refCount = 0
+        while (this.isPeekCertainTokenFlag(TokenFlag.And).isPresent) {
+            this.consumeToken()
+            refCount++
+        }
+
         var descriptor: TypeDescriptor
         val type = this.expectNextTokenFlag(TokenFlag.U64Type, TokenFlag.StringType)
 
@@ -114,6 +121,12 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
                 descriptor = ArrayDescriptor(descriptor, length)
             } else break
+        }
+
+        while (refCount > 0) {
+            descriptor = PointerDescriptor(descriptor)
+
+            refCount--
         }
 
         return descriptor

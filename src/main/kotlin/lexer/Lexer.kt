@@ -61,6 +61,7 @@ class Lexer(private val lineBuffer: LineBuffer) {
             '-' -> Pair("-", TokenFlag.Minus)
             '*' -> Pair("*", TokenFlag.Mul)
             '/' -> Pair("/", TokenFlag.Div)
+            '&' -> Pair("&", TokenFlag.And)
             '"' -> {
                 Pair(this.readString(tokenStartIndex), TokenFlag.StringLiteral)
             }

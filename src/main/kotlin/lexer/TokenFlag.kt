@@ -21,6 +21,8 @@ enum class TokenFlag {
     Mul,
     Div,
 
+    And,
+
     OpenParent,
     ClosedParent,
     OpenBracket,
@@ -46,6 +48,7 @@ enum class TokenFlag {
             Minus -> "-"
             Mul -> "*"
             Div -> "/"
+            And -> "&"
             OpenParent -> "("
             ClosedParent -> ")"
             Semicolon -> ";"
