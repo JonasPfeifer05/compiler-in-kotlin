@@ -1,21 +1,33 @@
 package parser.statements
 
 import errors.generator.CanOnlyAssignToPointerException
+import errors.generator.WrongTypeException
 import generator.ASMBuilder
 import generator.types.PointerDescriptor
 import parser.nodes.ExpressionNode
 
 class AssignStatement(private val assignee: ExpressionNode, private val expression: ExpressionNode): Statement() {
     override fun toAssembly(asmBuilder: ASMBuilder) {
-        val type = this.expression.evaluateOntoStack(asmBuilder)
+        // The value to store in the pointer
+        val valueType = this.expression.evaluateOntoStack(asmBuilder)
 
+        // The pointer to assign to
         val assigneeType = assignee.evaluateOntoStack(asmBuilder)
-        if (assigneeType !is PointerDescriptor) throw CanOnlyAssignToPointerException()
+
+        // Check if the pointer really is a pointer
+        when (assigneeType) {
+            is PointerDescriptor -> if (assigneeType.pointsTo != valueType) throw WrongTypeException(assigneeType.pointsTo, valueType)
+            else -> throw CanOnlyAssignToPointerException()
+        }
+
+        // Store the pointer in rax
         asmBuilder.pop("rax")
 
-        asmBuilder.memcpy("rax", "rsp", type.sizeOf())
+        // Copy from stack top to pointer
+        asmBuilder.memcpy("rax", "rsp", valueType.sizeOf())
 
-        asmBuilder.shrinkStack(type.sizeOf())
+        // Free the space of the value on the stack
+        asmBuilder.shrinkStack(valueType.sizeOf())
     }
 
     override fun toString(): String {

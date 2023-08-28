@@ -19,4 +19,19 @@ class StringDescriptor(private val length: Int): TypeDescriptor() {
     override fun toString(): String {
         return "String(${this.length})"
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as StringDescriptor
+
+        return length == other.length
+    }
+
+    override fun hashCode(): Int {
+        return length
+    }
+
+
 }

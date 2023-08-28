@@ -19,8 +19,7 @@ class OperationExpressionNode(
         val rightType = this.right.evaluateOntoStack(asmBuilder)
         val leftType = this.left.evaluateOntoStack(asmBuilder)
 
-        if (leftType::class != rightType::class)
-            throw CrossOperationException(this.operation, leftType, rightType)
+        if (leftType != rightType) throw CrossOperationException(this.operation, leftType, rightType)
 
         when (leftType) {
             is StringDescriptor -> {
@@ -51,6 +50,7 @@ class OperationExpressionNode(
             else -> unreachable()
         }
     }
+
 
     override fun toString(): String {
         return this.left.toString() + this.operation.getSymbol() + this.right.toString()

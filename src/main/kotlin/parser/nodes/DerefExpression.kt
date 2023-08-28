@@ -7,15 +7,19 @@ import generator.types.TypeDescriptor
 
 class DerefExpression(private val pointer: ExpressionNode): ExpressionNode() {
     override fun evaluateOntoStack(asmBuilder: ASMBuilder): TypeDescriptor {
-        val pointerType = this.pointer.evaluateOntoStack(asmBuilder)
-        if (pointerType !is PointerDescriptor) throw CanOnlyDerefPointersException()
+        val addressType = this.pointer.evaluateOntoStack(asmBuilder)
+        if (addressType !is PointerDescriptor) throw CanOnlyDerefPointersException()
 
+        // Move address into rax
         asmBuilder.pop("rax")
 
-        asmBuilder.growStack(pointerType.pointsTo.sizeOf())
-        pointerType.pointsTo.copyTo(0, "rax", asmBuilder)
+        // Grow the stack by the size of the target type
+        asmBuilder.growStack(addressType.pointsTo.sizeOf())
 
-        return pointerType.pointsTo
+        // Copy the value onto the stack
+        addressType.pointsTo.copyTo(0, "rax", asmBuilder)
+
+        return addressType.pointsTo
     }
 
     override fun toString(): String {
