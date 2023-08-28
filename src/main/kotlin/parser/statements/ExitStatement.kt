@@ -2,6 +2,8 @@ package parser.statements
 
 import errors.generator.WrongParameterTypeException
 import generator.ASMBuilder
+import generator.ConstantValue
+import generator.Register
 import generator.types.U64Descriptor
 import parser.nodes.ExpressionNode
 
@@ -17,13 +19,17 @@ class ExitStatement(private val expression: ExpressionNode) : Statement() {
         }
 
         // Exit program
-        asmBuilder.mov("rax", "60")
+        asmBuilder.mov(
+            Register.Rax, ConstantValue(60)
+        )
 
         // Move the value of the expression into the exit code
-        asmBuilder.pop("rdi")
+        asmBuilder.pop(
+            Register.Rdi
+        )
 
         // Execute
-        asmBuilder.append("syscall")
+        asmBuilder.syscall()
     }
 
     override fun toString(): String {

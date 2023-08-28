@@ -1,29 +1,18 @@
 package generator.types
 
 import generator.ASMBuilder
+import generator.DataSource
+import generator.Register
 
 class PointerDescriptor(val pointsTo: TypeDescriptor): TypeDescriptor() {
     override fun sizeOf(): Int = 8
 
-    override fun copyTo(offsetTo: Int, offsetFrom: Int, asmBuilder: ASMBuilder) {
+    override fun copyTo(to: DataSource, from: DataSource, asmBuilder: ASMBuilder) {
         asmBuilder.mov(
-            "rax",
-            asmBuilder.pointerWithOffset("rsp", offsetFrom)
+            Register.Rbx, from
         )
         asmBuilder.mov(
-            asmBuilder.pointerWithOffset("rsp", offsetTo),
-            "rax"
-        )
-    }
-
-    override fun copyTo(offsetTo: Int, from: String, asmBuilder: ASMBuilder) {
-        asmBuilder.mov(
-            "rax",
-            "[$from]"
-        )
-        asmBuilder.mov(
-            asmBuilder.pointerWithOffset("rsp", offsetTo),
-            "rax"
+            to, Register.Rbx
         )
     }
 
@@ -40,5 +29,7 @@ class PointerDescriptor(val pointsTo: TypeDescriptor): TypeDescriptor() {
         return pointsTo.hashCode()
     }
 
-
+    override fun toString(): String {
+        return "&$pointsTo"
+    }
 }

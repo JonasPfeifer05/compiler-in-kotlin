@@ -1,11 +1,9 @@
 package parser.nodes
 
 import errors.generator.CrossOperationException
-import errors.generator.IllegalOperationException
-import general.Register
 import general.unreachable
 import generator.ASMBuilder
-import generator.types.StringDescriptor
+import generator.Register
 import generator.types.TypeDescriptor
 import generator.types.U64Descriptor
 import lexer.TokenFlag
@@ -22,29 +20,45 @@ class OperationExpressionNode(
         if (leftType != rightType) throw CrossOperationException(this.operation, leftType, rightType)
 
         when (leftType) {
-            is StringDescriptor -> {
-                return when (this.operation) {
-                    TokenFlag.Plus -> StringDescriptor(leftType.sizeOf() + rightType.sizeOf())
-                    else -> throw IllegalOperationException(this.operation, leftType, rightType)
-                }
-            }
+            //is StringDescriptor -> {
+            //    return when (this.operation) {
+            //        TokenFlag.Plus -> StringDescriptor(leftType.sizeOf() + rightType.sizeOf())
+            //        else -> throw IllegalOperationException(this.operation, leftType, rightType)
+            //    }
+            //}
             is U64Descriptor -> {
-                asmBuilder.pop(Register.PrimaryCalculation.register)
-                asmBuilder.pop(Register.SecondaryCalculation.register)
+                asmBuilder.pop(
+                    Register.PrimaryCalculation
+                )
+                asmBuilder.pop(
+                    Register.SecondaryCalculation
+                )
 
                 when (this.operation) {
-                    TokenFlag.Plus -> asmBuilder.add(Register.PrimaryCalculation.register, Register.SecondaryCalculation.register)
-                    TokenFlag.Minus -> asmBuilder.sub(Register.PrimaryCalculation.register, Register.SecondaryCalculation.register)
-                    TokenFlag.Mul -> asmBuilder.imul(Register.PrimaryCalculation.register, Register.SecondaryCalculation.register)
+                    TokenFlag.Plus -> asmBuilder.add(
+                        Register.PrimaryCalculation, Register.SecondaryCalculation
+                    )
+                    TokenFlag.Minus -> asmBuilder.sub(
+                        Register.PrimaryCalculation, Register.SecondaryCalculation
+                    )
+                    TokenFlag.Mul -> asmBuilder.imul(
+                        Register.PrimaryCalculation, Register.SecondaryCalculation
+                    )
                     TokenFlag.Div -> {
                         // The rdx register is needed by the div operation because of this we set the register to 0 by xor with itself
-                        asmBuilder.xor("rdx", "rdx")
-                        asmBuilder.div(Register.SecondaryCalculation.register)
+                        asmBuilder.xor(
+                            Register.Rdx, Register.Rdx
+                        )
+                        asmBuilder.div(
+                            Register.SecondaryCalculation
+                        )
                     }
                     else -> unreachable()
                 }
 
-                asmBuilder.push(Register.PrimaryCalculation.register)
+                asmBuilder.push(
+                    Register.PrimaryCalculation
+                )
                 return U64Descriptor()
             }
             else -> unreachable()

@@ -7,7 +7,6 @@ import errors.parser.UnexpectedTokenException
 import general.LineBuffer
 import general.unreachable
 import generator.types.ArrayDescriptor
-import generator.types.StringDescriptor
 import generator.types.TypeDescriptor
 import generator.types.U64Descriptor
 import lexer.Token
@@ -99,7 +98,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
         descriptor = when (type.flag) {
             TokenFlag.U64Type -> U64Descriptor()
-            TokenFlag.StringType -> StringDescriptor(5)
+            // TokenFlag.StringType -> StringDescriptor(5)
             else -> unreachable()
         }
 
@@ -174,7 +173,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             TokenFlag.IdentifierLiteral -> IdentifierLiteralExpressionNode(token.value)
             TokenFlag.NumberLiteral -> NumberLiteralExpressionNode(token.value)
             TokenFlag.OpenParent -> parseEnclosedExpression()
-            TokenFlag.StringLiteral -> StringLiteralExpressionNode(token.value)
+            //TODO TokenFlag.StringLiteral -> StringLiteralExpressionNode(token.value)
             TokenFlag.OpenBracket -> parseArray()
             else -> unreachable()
         }

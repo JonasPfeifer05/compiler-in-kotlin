@@ -1,6 +1,7 @@
 package generator
 
 import errors.generator.UnknownVariableException
+import general.unreachable
 import generator.types.TypeDescriptor
 import kotlin.math.absoluteValue
 
@@ -8,34 +9,21 @@ class ASMBuilder(private val asmBuffer: StringBuilder) {
     private val stack = VirtualStackDescriptor()
     private val lookupTable = VariableLookupTable(stack)
 
-    fun stackFrameStart() {
-        this.push("rbp")
-        this.mov("rbp", "rsp")
-    }
-
-    fun stackFrameEnd() {
-        this.mov("rsp", "rbp")
-        this.append("ret")
-    }
-
-    fun memcpy(offsetTo: Int, offsetFrom: Int, bytes: Int) {
-        this.lea("rdi", "rsp", offsetTo)
-        this.lea("rsi", "rsp", offsetFrom)
-        this.mov("rdx", bytes.toString())
-        this.call("memcpy")
-    }
-
-    fun memcpy(offsetTo: Int, from: String, bytes: Int) {
-        this.lea("rdi", "rsp", offsetTo)
-        this.mov("rsi", from)
-        this.mov("rdx", bytes.toString())
-        this.call("memcpy")
-    }
-
-    fun memcpy(to: String, from: String, bytes: Int) {
-        this.mov("rdi", to)
-        this.mov("rsi", from)
-        this.mov("rdx", bytes.toString())
+    fun memcpy(to: DataSource, from: DataSource, bytesToCopy: Int) {
+        // To address
+        when (to) {
+            is ConstantValue -> this.lea(Register.Rdi, Register.Rsp, to)
+            is Register -> this.mov(Register.Rdi, to)
+            is Offset, is AddressFrom -> unreachable()
+        }
+        // From address
+        when (from) {
+            is ConstantValue -> this.lea(Register.Rsi, Register.Rsp, from)
+            is Register -> this.mov(Register.Rsi, from)
+            is Offset, is AddressFrom -> unreachable()
+        }
+        // Amount of bytes
+        this.mov(Register.Rdx, ConstantValue(bytesToCopy))
         this.call("memcpy")
     }
 
@@ -43,17 +31,21 @@ class ASMBuilder(private val asmBuffer: StringBuilder) {
         this.append("call $name")
     }
 
-    fun lea(into: String, from: String, offset: Int) {
+    fun syscall() {
+        this.append("syscall")
+    }
+
+    fun lea(into: Register, from: Register, offset: DataSource) {
         this.append("lea $into, ${pointerWithOffset(from, offset)}")
     }
 
     fun growStack(bytes: Int) {
-        this.sub("rsp", bytes.toString())
+        this.sub(Register.Rsp, ConstantValue(bytes))
         this.stack.grow(bytes)
     }
 
     fun shrinkStack(bytes: Int) {
-        this.add("rsp", bytes.toString())
+        this.add(Register.Rsp, ConstantValue(bytes))
         this.stack.shrink(bytes)
     }
 
@@ -74,44 +66,48 @@ class ASMBuilder(private val asmBuffer: StringBuilder) {
         return this.stackSize() - variable.first
     }
 
-    fun pointerWithOffset(from: String, offset: Int, size: MemorySizes? = null): String {
+    fun pointerWithOffset(from: Register, offset: DataSource, size: MemorySizes? = null): String {
         val sizeString = size?.toString() ?: ""
-        return if (offset >= 0) {
-            "$sizeString [$from + ${offset.absoluteValue}]"
-        } else {
-            "$sizeString [$from - ${offset.absoluteValue}]"
+        return when (offset) {
+            is ConstantValue -> if (offset.value >= 0) {
+                "$sizeString [$from + ${offset.value.absoluteValue}]"
+            } else {
+                "$sizeString [$from - ${offset.value.absoluteValue}]"
+            }
+            is Register -> "$sizeString [$from + $offset]"
+            is Offset, is AddressFrom -> unreachable()
         }
     }
 
-    fun mov(into: String, from: String) = this.append("mov $into, $from")
+    fun mov(into: DataSource, from: DataSource) = this.append("mov $into, $from")
 
-    fun pop(into: String) {
+    fun pop(into: Register) {
         this.append("pop $into")
         this.stack.popNumber()
     }
 
-    fun push(from: String) {
+    fun push(from: DataSource) {
         this.append("push $from")
         this.stack.pushNumber()
     }
 
-    fun add(into: String, from: String) {
+    fun add(into: Register, from: DataSource) {
         this.append("add $into, $from")
     }
 
-    fun sub(into: String, from: String) {
+    fun sub(into: Register, from: DataSource) {
         this.append("sub $into, $from")
     }
 
-    fun imul(into: String, from: String) {
+    fun imul(into: Register, from: DataSource) {
         this.append("imul $into, $from")
     }
 
-    fun div(from: String) {
+    fun div(from: DataSource) {
         this.append("div $from")
     }
 
-    fun xor(into: String, from: String) {
+    fun xor(into: Register, from: DataSource) {
         this.append("xor $into, $from")
     }
 

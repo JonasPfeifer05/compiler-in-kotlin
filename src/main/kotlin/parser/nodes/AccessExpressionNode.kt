@@ -4,6 +4,8 @@ import errors.generator.IndexCanOnlyBeNumberException
 import errors.generator.YouCanOnlyAccessArraysException
 import errors.generator.YouCanOnlyAccessPointersException
 import generator.ASMBuilder
+import generator.ConstantValue
+import generator.Register
 import generator.types.ArrayDescriptor
 import generator.types.PointerDescriptor
 import generator.types.TypeDescriptor
@@ -24,19 +26,29 @@ class AccessExpressionNode(private val toAccess: ExpressionNode, private val ind
         if (indexType != U64Descriptor()) throw IndexCanOnlyBeNumberException()
 
         // Move index into rax
-        asmBuilder.pop("rax")
+        asmBuilder.pop(
+            Register.Rax
+        )
 
         // Multiply the index by the size of the elements to receive the correct offset
-        asmBuilder.imul("rax", elementType.sizeOf().toString())
+        asmBuilder.imul(
+            Register.Rax, ConstantValue(elementType.sizeOf())
+        )
 
         // Move address into rbx
-        asmBuilder.pop("rbx")
+        asmBuilder.pop(
+            Register.Rbx
+        )
 
         // Add the offset to the base address
-        asmBuilder.append("lea rax, [rbx + rax]")
+        asmBuilder.lea(
+            Register.Rax, Register.Rbx, Register.Rax
+        )
 
         // Push the address of the access element onto the stack
-        asmBuilder.push("rax")
+        asmBuilder.push(
+            Register.Rax
+        )
 
         return PointerDescriptor(elementType)
     }

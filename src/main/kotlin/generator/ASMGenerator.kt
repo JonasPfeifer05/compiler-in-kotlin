@@ -10,7 +10,6 @@ class ASMGenerator(private val statements: List<Statement>) {
     fun generateAssembly(): String {
         this.asmBuilder.appendWithoutIndent("global _start")
         this.asmBuilder.appendWithoutIndent("_start:")
-        this.asmBuilder.stackFrameStart()
 
         for (statement in this.statements) {
             asmBuilder.append("; $statement")
@@ -20,7 +19,6 @@ class ASMGenerator(private val statements: List<Statement>) {
 
         // Add exit with code 0 so that it exits with 0 if there was no other exit before that
         ExitStatement(NumberLiteralExpressionNode("0")).toAssembly(asmBuilder)
-        this.asmBuilder.stackFrameEnd()
 
         this.addBuildInFunctions()
 
@@ -29,7 +27,8 @@ class ASMGenerator(private val statements: List<Statement>) {
 
     private fun addBuildInFunctions() {
         this.asmBuilder.append("")
-
+        this.asmBuilder.append("")
+        this.asmBuilder.append("")
         this.asmBuilder.appendWithoutIndent(this.memcpyFunction())
     }
 
