@@ -15,9 +15,9 @@ class OperationExpressionNode(
     private val operation: TokenFlag,
     private val right: ExpressionNode,
 ): ExpressionNode() {
-    override fun evaluate(asmBuilder: ASMBuilder): TypeDescriptor {
-        val rightType = this.right.evaluate(asmBuilder)
-        val leftType = this.left.evaluate(asmBuilder)
+    override fun evaluateOntoStack(asmBuilder: ASMBuilder): TypeDescriptor {
+        val rightType = this.right.evaluateOntoStack(asmBuilder)
+        val leftType = this.left.evaluateOntoStack(asmBuilder)
 
         if (leftType::class != rightType::class)
             throw CrossOperationException(this.operation, leftType, rightType)

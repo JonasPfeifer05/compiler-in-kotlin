@@ -15,6 +15,14 @@ class ArrayDescriptor(val content: TypeDescriptor, private val length: Int): Typ
         )
     }
 
+    override fun copyTo(offsetTo: Int, from: String, asmBuilder: ASMBuilder) {
+        asmBuilder.memcpy(
+            offsetTo,
+            from,
+            this.sizeOf(),
+        )
+    }
+
     override fun toString(): String {
         return "$content[${this.length}]"
     }

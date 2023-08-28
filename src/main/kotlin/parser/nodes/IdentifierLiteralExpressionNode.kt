@@ -1,21 +1,17 @@
 package parser.nodes
 
 import generator.ASMBuilder
+import generator.types.PointerDescriptor
 import generator.types.TypeDescriptor
 
 class IdentifierLiteralExpressionNode(val name: String): ExpressionNode() {
-    override fun evaluate(asmBuilder: ASMBuilder): TypeDescriptor {
+    override fun evaluateOntoStack(asmBuilder: ASMBuilder): TypeDescriptor {
         val variable = asmBuilder.getVariable(name)
-        val size = variable.second.sizeOf()
 
-        asmBuilder.growStack(size)
-        variable.second.copyTo(
-            0,
-            asmBuilder.offsetToVariable(variable),
-            asmBuilder
-        )
+        asmBuilder.append("lea rax, [rsp + ${asmBuilder.offsetToVariable(variable)}]")
+        asmBuilder.push("rax")
 
-        return variable.second
+        return PointerDescriptor(variable.second)
     }
 
     override fun toString(): String {

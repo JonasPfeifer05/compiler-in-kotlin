@@ -1,24 +1,24 @@
 package parser.statements
 
-import errors.generator.WrongTypeException
+import errors.generator.CanOnlyAssignToPointerException
 import generator.ASMBuilder
-import parser.nodes.Expression
+import generator.types.PointerDescriptor
+import parser.nodes.ExpressionNode
 
-class AssignStatement(private val name: String, private val expression: Expression): Statement() {
+class AssignStatement(private val assignee: ExpressionNode, private val expression: ExpressionNode): Statement() {
     override fun toAssembly(asmBuilder: ASMBuilder) {
-        val variable = asmBuilder.getVariable(name)
-        val type = this.expression.evaluate(asmBuilder)
+        val type = this.expression.evaluateOntoStack(asmBuilder)
 
-        if (variable.second::class != type::class)
-            throw WrongTypeException(variable.second, type)
+        val assigneeType = assignee.evaluateOntoStack(asmBuilder)
+        if (assigneeType !is PointerDescriptor) throw CanOnlyAssignToPointerException()
+        asmBuilder.pop("rax")
 
-        asmBuilder.memcpy(
-            asmBuilder.offsetToVariable(variable), 0, type.sizeOf()
-        )
+        asmBuilder.memcpy("rax", "rsp", type.sizeOf())
+
         asmBuilder.shrinkStack(type.sizeOf())
     }
 
     override fun toString(): String {
-        return "$name = $expression;"
+        return "$assignee = $expression;"
     }
 }

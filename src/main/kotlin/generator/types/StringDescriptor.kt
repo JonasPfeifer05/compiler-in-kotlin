@@ -10,6 +10,12 @@ class StringDescriptor(private val length: Int): TypeDescriptor() {
         )
     }
 
+    override fun copyTo(offsetTo: Int, from: String, asmBuilder: ASMBuilder) {
+        asmBuilder.memcpy(
+            offsetTo, from, this.sizeOf()
+        )
+    }
+
     override fun toString(): String {
         return "String(${this.length})"
     }

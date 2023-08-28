@@ -5,7 +5,7 @@ import generator.types.TypeDescriptor
 import generator.types.U64Descriptor
 
 class NumberLiteralExpressionNode(private val value: String): ExpressionNode() {
-    override fun evaluate(asmBuilder: ASMBuilder): TypeDescriptor {
+    override fun evaluateOntoStack(asmBuilder: ASMBuilder): TypeDescriptor {
         asmBuilder.push(value)
         return U64Descriptor()
     }

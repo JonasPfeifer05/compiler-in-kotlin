@@ -30,10 +30,11 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
     }
 
     private fun parseStatement(): Statement {
-        val startToken = this.consumeToken()
+        val startToken = this.peekToken().get()
 
         when (startToken.flag) {
             TokenFlag.Exit -> {
+                this.consumeToken()
                 this.expectNextTokenFlag(TokenFlag.OpenParent)
 
                 val expression = this.parseExpression()
@@ -45,6 +46,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             }
 
             TokenFlag.Let -> {
+                this.consumeToken()
                 val name = this.expectNextTokenFlag(TokenFlag.IdentifierLiteral).value
 
                 val type = this.parseType()
@@ -62,6 +64,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             }
 
             TokenFlag.Print -> {
+                this.consumeToken()
                 this.expectNextTokenFlag(TokenFlag.OpenParent)
 
                 val expression = this.parseExpression()
@@ -73,7 +76,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             }
 
             TokenFlag.IdentifierLiteral -> {
-                val name = startToken.value
+                val assignee = this.parseSingleValue()
 
                 this.expectNextTokenFlag(TokenFlag.Assign)
 
@@ -81,7 +84,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
                 this.expectNextTokenFlag(TokenFlag.Semicolon)
 
-                return AssignStatement(name, expression)
+                return AssignStatement(assignee, expression)
             }
 
             else -> throw UnexpectedTokenException(startToken)
@@ -117,8 +120,8 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
         return descriptor
     }
 
-    private fun parseExpression(): Expression {
-        return Expression(this.parseTerm())
+    private fun parseExpression(): ExpressionNode {
+        return this.parseTerm()
     }
 
     private fun parseTerm(): ExpressionNode {
@@ -152,6 +155,13 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
     }
 
     private fun parseSingleValue(): ExpressionNode {
+        val tokenPeek = this.isPeekCertainTokenFlag(TokenFlag.Mul)
+        if (tokenPeek.isPresent) {
+            this.consumeToken()
+            val value = this.parseSingleValue()
+            return DerefExpression(value)
+        }
+
         val token = this.expectNextTokenFlag(
             TokenFlag.IdentifierLiteral,
             TokenFlag.NumberLiteral,
@@ -160,7 +170,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             TokenFlag.OpenBracket,
         )
 
-        val left = when (token.flag) {
+        var left = when (token.flag) {
             TokenFlag.IdentifierLiteral -> IdentifierLiteralExpressionNode(token.value)
             TokenFlag.NumberLiteral -> NumberLiteralExpressionNode(token.value)
             TokenFlag.OpenParent -> parseEnclosedExpression()
@@ -169,12 +179,15 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             else -> unreachable()
         }
 
-        val peek = this.isPeekCertainTokenFlag(TokenFlag.OpenBracket)
-        if (peek.isPresent) {
+        var peek = this.isPeekCertainTokenFlag(TokenFlag.OpenBracket)
+        while (peek.isPresent) {
             this.consumeToken()
+
             val index = this.parseTerm()
             this.expectNextTokenFlag(TokenFlag.ClosedBracket)
-            return AccessExpressionNode(left, index)
+            left = AccessExpressionNode(left, index)
+
+            peek = this.isPeekCertainTokenFlag(TokenFlag.OpenBracket)
         }
 
         return left

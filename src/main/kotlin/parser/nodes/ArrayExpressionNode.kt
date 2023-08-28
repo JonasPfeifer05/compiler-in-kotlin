@@ -7,10 +7,10 @@ import generator.types.ArrayDescriptor
 import generator.types.TypeDescriptor
 
 class ArrayExpressionNode(private val values: List<ExpressionNode>): ExpressionNode() {
-    override fun evaluate(asmBuilder: ASMBuilder): TypeDescriptor {
+    override fun evaluateOntoStack(asmBuilder: ASMBuilder): TypeDescriptor {
         var lastType: TypeDescriptor? = null
         for (value in values.reversed()) {
-            val type = value.evaluate(asmBuilder)
+            val type = value.evaluateOntoStack(asmBuilder)
             if (lastType != null && lastType::class != type::class)
                 throw WrongTypeException(lastType, type)
             lastType = type

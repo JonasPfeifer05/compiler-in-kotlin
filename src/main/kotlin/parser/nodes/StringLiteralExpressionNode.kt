@@ -6,7 +6,7 @@ import generator.types.StringDescriptor
 import generator.types.TypeDescriptor
 
 class StringLiteralExpressionNode(private val value: String): ExpressionNode() {
-    override fun evaluate(asmBuilder: ASMBuilder): TypeDescriptor {
+    override fun evaluateOntoStack(asmBuilder: ASMBuilder): TypeDescriptor {
         val chunk8 = this.value.chunked(8).toMutableList()
         var endOfString = chunk8.removeLast()
         if (endOfString.length == 8) {

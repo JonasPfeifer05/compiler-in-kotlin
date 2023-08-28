@@ -25,9 +25,16 @@ class ASMBuilder(private val asmBuffer: StringBuilder) {
         this.call("memcpy")
     }
 
-    fun memcpy(offsetTo: Int, offsetFrom: String, bytes: Int) {
+    fun memcpy(offsetTo: Int, from: String, bytes: Int) {
         this.lea("rdi", "rsp", offsetTo)
-        this.mov("rsi", offsetFrom)
+        this.mov("rsi", from)
+        this.mov("rdx", bytes.toString())
+        this.call("memcpy")
+    }
+
+    fun memcpy(to: String, from: String, bytes: Int) {
+        this.mov("rdi", to)
+        this.mov("rsi", from)
         this.mov("rdx", bytes.toString())
         this.call("memcpy")
     }

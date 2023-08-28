@@ -1,11 +1,11 @@
 package parser.statements
 
 import generator.ASMBuilder
-import parser.nodes.Expression
+import parser.nodes.ExpressionNode
 
-class ExitStatement(private val expression: Expression) : Statement() {
+class ExitStatement(private val expression: ExpressionNode) : Statement() {
     override fun toAssembly(asmBuilder: ASMBuilder) {
-        this.expression.evaluate(asmBuilder)
+        this.expression.evaluateOntoStack(asmBuilder)
         asmBuilder.mov("rax", "60")
         asmBuilder.pop("rdi")
         asmBuilder.append("syscall")
