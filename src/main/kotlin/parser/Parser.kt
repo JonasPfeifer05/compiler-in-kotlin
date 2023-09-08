@@ -179,6 +179,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             //TODO TokenFlag.StringLiteral -> StringLiteralExpressionNode(token.value)
             TokenFlag.OpenBracket -> parseArray()
             TokenFlag.CharLiteral -> CharExpressionNode(token.value)
+            TokenFlag.StringLiteral -> stringToCharArrayExpression(token.value)
             else -> unreachable()
         }
 
@@ -194,6 +195,26 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
         }
 
         return left
+    }
+
+    private fun stringToCharArrayExpression(value: String): ExpressionNode {
+        val elements: MutableList<CharExpressionNode> = mutableListOf()
+        var index = 0
+
+        var charBuffer: String;
+        while (index < value.length) {
+            charBuffer = if (value[index] == '\\') {
+                index++
+                "\\"
+            } else ""
+
+            charBuffer += value[index]
+
+            elements.add(CharExpressionNode(charBuffer))
+
+            index++
+        }
+        return ArrayExpressionNode(elements)
     }
 
     private fun parseArray(): ExpressionNode {
