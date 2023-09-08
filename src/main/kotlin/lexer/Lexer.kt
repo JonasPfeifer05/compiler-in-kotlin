@@ -67,9 +67,9 @@ class Lexer(private val lineBuffer: LineBuffer) {
                 Pair(this.readString(tokenStartIndex), TokenFlag.StringLiteral)
             }
             "'"[0] -> {
-                var value: String = this.consumeChar().toString();
+                var value: String = this.consumeChar().toString()
                 if (this.peekChar().isPresent && this.peekChar().get() != "'"[0]) {
-                    value += this.consumeChar();
+                    value += this.consumeChar()
                 }
                 if (this.peekChar().isEmpty || this.consumeChar() != "'"[0])
                     throw NonTerminatedCharException(TokenLocation(this.lineIndex, tokenStartIndex..this.charIndex), this.lineBuffer.getLineOptional(this.lineIndex).get())

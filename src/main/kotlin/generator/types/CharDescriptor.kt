@@ -2,7 +2,6 @@ package generator.types
 
 import generator.ASMBuilder
 import generator.DataSource
-import generator.Register
 
 class CharDescriptor: TypeDescriptor() {
     override fun sizeOf(): Int = 1

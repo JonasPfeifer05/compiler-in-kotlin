@@ -1,6 +1,5 @@
 package parser
 
-import errors.generator.InvalidArrayLengthException
 import errors.parser.FoundUnexpectedTokenException
 import errors.parser.RanOutOfTokensButExpectedTokenException
 import errors.parser.UnexpectedTokenException
@@ -93,7 +92,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
     private fun parseType(): TypeDescriptor {
         if (this.isPeekCertainTokenFlag(TokenFlag.And).isPresent) {
             this.consumeToken()
-            return PointerDescriptor(parseType());
+            return PointerDescriptor(parseType())
         }
 
         if (this.isPeekCertainTokenFlag(TokenFlag.OpenBracket).isPresent) {
@@ -102,14 +101,14 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
             this.expectNextTokenFlag(TokenFlag.Comma)
 
-            val descriptor = parseType();
+            val descriptor = parseType()
 
             this.expectNextTokenFlag(TokenFlag.ClosedBracket)
 
-            return ArrayDescriptor(descriptor, length);
+            return ArrayDescriptor(descriptor, length)
         }
 
-        var descriptor: TypeDescriptor
+        val descriptor: TypeDescriptor
         val type = this.expectNextTokenFlag(TokenFlag.U64Type, TokenFlag.StringType, TokenFlag.CharType)
 
         descriptor = when (type.flag) {
