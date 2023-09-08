@@ -1,7 +1,6 @@
 package parser.nodes
 
 import errors.generator.IndexCanOnlyBeNumberException
-import errors.generator.YouCanOnlyAccessArraysException
 import errors.generator.YouCanOnlyAccessPointersException
 import generator.ASMBuilder
 import generator.ConstantValue
@@ -19,7 +18,7 @@ class AccessExpressionNode(private val toAccess: ExpressionNode, private val ind
         // get the type that gets accessed
         val elementType = when (addressType.pointsTo) {
             is ArrayDescriptor -> addressType.pointsTo.content
-            else -> throw YouCanOnlyAccessArraysException()
+            else -> addressType.pointsTo
         }
 
         val indexType = this.index.evaluateOntoStack(asmBuilder)

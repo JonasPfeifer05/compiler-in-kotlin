@@ -1,3 +1,9 @@
-let a: [13, char] = ['H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!', '\n'];
+let a: u64 = 1;
+let b: u64 = 2;
+let c: u64 = 3;
+let d: u64 = 4;
+let e: u64 = 5;
+let f: u64 = 6;
+let g: &u64 = d;
 
-print(*a);
+exit(*(*g[0])[1]);
