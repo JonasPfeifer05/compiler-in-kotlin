@@ -1,5 +1,6 @@
 package lexer
 
+import errors.lexer.NonTerminatedCharException
 import errors.lexer.NonTerminatedStringException
 import errors.lexer.UnknownCharException
 import general.LineBuffer
@@ -65,6 +66,15 @@ class Lexer(private val lineBuffer: LineBuffer) {
             '"' -> {
                 Pair(this.readString(tokenStartIndex), TokenFlag.StringLiteral)
             }
+            "'"[0] -> {
+                var value: String = this.consumeChar().toString();
+                if (this.peekChar().isPresent && this.peekChar().get() != "'"[0]) {
+                    value += this.consumeChar();
+                }
+                if (this.peekChar().isEmpty || this.consumeChar() != "'"[0])
+                    throw NonTerminatedCharException(TokenLocation(this.lineIndex, tokenStartIndex..this.charIndex), this.lineBuffer.getLineOptional(this.lineIndex).get())
+                Pair(value, TokenFlag.CharLiteral)
+            }
             in LOWER_LETTERS_RANGE, in UPPER_LETTERS_RANGE -> {
                 val value = currentChar + this.readMatchingSequence { this in LOWER_LETTERS_RANGE || this in NUMBER_RANGE || this in UPPER_LETTERS_RANGE }
                 when (value) {
@@ -73,6 +83,7 @@ class Lexer(private val lineBuffer: LineBuffer) {
                     "print" -> Pair(value, TokenFlag.Print)
                     "u64" -> Pair(value, TokenFlag.U64Type)
                     "string" -> Pair(value, TokenFlag.StringType)
+                    "char" -> Pair(value, TokenFlag.CharType)
                     else -> Pair(value, TokenFlag.IdentifierLiteral)
                 }
             }

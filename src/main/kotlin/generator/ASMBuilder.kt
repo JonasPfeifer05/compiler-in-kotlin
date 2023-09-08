@@ -14,13 +14,15 @@ class ASMBuilder(private val asmBuffer: StringBuilder) {
         when (to) {
             is ConstantValue -> this.lea(Register.Rdi, Register.Rsp, to)
             is Register -> this.mov(Register.Rdi, to)
-            is Offset, is AddressFrom -> unreachable()
+            is AddressFrom -> this.mov(Register.Rdi, to.from)
+            is Offset -> unreachable()
         }
         // From address
         when (from) {
             is ConstantValue -> this.lea(Register.Rsi, Register.Rsp, from)
             is Register -> this.mov(Register.Rsi, from)
-            is Offset, is AddressFrom -> unreachable()
+            is AddressFrom -> this.mov(Register.Rsi, from.from)
+            is Offset -> unreachable()
         }
         // Amount of bytes
         this.mov(Register.Rdx, ConstantValue(bytesToCopy))

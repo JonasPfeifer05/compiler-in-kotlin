@@ -8,10 +8,12 @@ enum class TokenFlag {
     Print,
 
     StringLiteral,
+    CharLiteral,
     IdentifierLiteral,
     NumberLiteral,
 
     U64Type,
+    CharType,
     StringType,
 
     Assign,
@@ -60,6 +62,8 @@ enum class TokenFlag {
             Colon -> ":"
             OpenBracket -> "["
             ClosedBracket -> "]"
+            CharType -> "char"
+            CharLiteral -> "%char%"
         }
     }
 }

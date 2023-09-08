@@ -6,10 +6,7 @@ import errors.parser.RanOutOfTokensButExpectedTokenException
 import errors.parser.UnexpectedTokenException
 import general.LineBuffer
 import general.unreachable
-import generator.types.ArrayDescriptor
-import generator.types.PointerDescriptor
-import generator.types.TypeDescriptor
-import generator.types.U64Descriptor
+import generator.types.*
 import lexer.Token
 import lexer.TokenFlag
 import parser.nodes.*
@@ -48,6 +45,8 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             TokenFlag.Let -> {
                 this.consumeToken()
                 val name = this.expectNextTokenFlag(TokenFlag.IdentifierLiteral).value
+
+                this.expectNextTokenFlag(TokenFlag.Colon)
 
                 val type = this.parseType()
 
@@ -92,41 +91,32 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
     }
 
     private fun parseType(): TypeDescriptor {
-        this.expectNextTokenFlag(TokenFlag.Colon)
-
-        var refCount = 0
-        while (this.isPeekCertainTokenFlag(TokenFlag.And).isPresent) {
+        if (this.isPeekCertainTokenFlag(TokenFlag.And).isPresent) {
             this.consumeToken()
-            refCount++
+            return PointerDescriptor(parseType());
+        }
+
+        if (this.isPeekCertainTokenFlag(TokenFlag.OpenBracket).isPresent) {
+            this.consumeToken()
+            val length = this.expectNextTokenFlag(TokenFlag.NumberLiteral).value.toInt()
+
+            this.expectNextTokenFlag(TokenFlag.Comma)
+
+            val descriptor = parseType();
+
+            this.expectNextTokenFlag(TokenFlag.ClosedBracket)
+
+            return ArrayDescriptor(descriptor, length);
         }
 
         var descriptor: TypeDescriptor
-        val type = this.expectNextTokenFlag(TokenFlag.U64Type, TokenFlag.StringType)
+        val type = this.expectNextTokenFlag(TokenFlag.U64Type, TokenFlag.StringType, TokenFlag.CharType)
 
         descriptor = when (type.flag) {
             TokenFlag.U64Type -> U64Descriptor()
+            TokenFlag.CharType -> CharDescriptor()
             // TokenFlag.StringType -> StringDescriptor(5)
             else -> unreachable()
-        }
-
-        while (true) {
-
-            val peek = isPeekCertainTokenFlag(TokenFlag.OpenBracket)
-            if (peek.isPresent) {
-                this.consumeToken()
-                val length = this.expectNextTokenFlag(TokenFlag.NumberLiteral).value.toInt()
-                this.expectNextTokenFlag(TokenFlag.ClosedBracket)
-
-                if (length <= 0) throw InvalidArrayLengthException(length)
-
-                descriptor = ArrayDescriptor(descriptor, length)
-            } else break
-        }
-
-        while (refCount > 0) {
-            descriptor = PointerDescriptor(descriptor)
-
-            refCount--
         }
 
         return descriptor
@@ -180,6 +170,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             TokenFlag.OpenParent,
             TokenFlag.StringLiteral,
             TokenFlag.OpenBracket,
+            TokenFlag.CharLiteral
         )
 
         var left = when (token.flag) {
@@ -188,6 +179,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
             TokenFlag.OpenParent -> parseEnclosedExpression()
             //TODO TokenFlag.StringLiteral -> StringLiteralExpressionNode(token.value)
             TokenFlag.OpenBracket -> parseArray()
+            TokenFlag.CharLiteral -> CharExpressionNode(token.value)
             else -> unreachable()
         }
 
