@@ -5,7 +5,7 @@ import generator.ConstantValue
 import generator.types.TypeDescriptor
 import generator.types.U64Descriptor
 
-class NumberLiteralExpressionNode(private val value: String): ExpressionNode() {
+class U64LiteralExpressionNode(private val value: String): ExpressionNode() {
     override fun evaluateOntoStack(asmBuilder: ASMBuilder): TypeDescriptor {
         // Push the value on the stack
         asmBuilder.push(

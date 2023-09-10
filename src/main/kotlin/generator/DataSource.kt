@@ -31,8 +31,12 @@ class Offset(val from: Register, private val offset: DataSource): DataSource() {
     }
 }
 
-class AddressFrom(val from: Register): DataSource() {
+class AddressFrom(val from: Register, private val size: MemorySizes? = null): DataSource() {
     override fun toString(): String {
-        return "[$from]"
+        val sizeType = if (this.size == null) "" else this.size.toString()
+
+        return "$sizeType [$from]"
     }
+
+    fun withSize(size: MemorySizes): AddressFrom = AddressFrom(this.from, size)
 }

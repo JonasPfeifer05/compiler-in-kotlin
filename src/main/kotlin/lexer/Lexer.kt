@@ -89,7 +89,7 @@ class Lexer(private val lineBuffer: LineBuffer) {
             }
             in NUMBER_RANGE -> Pair(
                 currentChar + this.readMatchingSequence { this in NUMBER_RANGE },
-                TokenFlag.NumberLiteral,
+                TokenFlag.IntegerLiteral,
             )
             else ->
                 throw UnknownCharException(

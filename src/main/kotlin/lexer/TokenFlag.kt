@@ -10,7 +10,7 @@ enum class TokenFlag {
     StringLiteral,
     CharLiteral,
     IdentifierLiteral,
-    NumberLiteral,
+    IntegerLiteral,
 
     U64Type,
     CharType,
@@ -44,7 +44,7 @@ enum class TokenFlag {
             Exit -> "exit"
             Let -> "let"
             IdentifierLiteral -> "%literal%"
-            NumberLiteral -> "%number%"
+            IntegerLiteral -> "%integer%"
             Assign -> "="
             Plus -> "+"
             Minus -> "-"

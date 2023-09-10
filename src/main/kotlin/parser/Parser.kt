@@ -97,7 +97,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
         if (this.isPeekCertainTokenFlag(TokenFlag.OpenBracket).isPresent) {
             this.consumeToken()
-            val length = this.expectNextTokenFlag(TokenFlag.NumberLiteral).value.toInt()
+            val length = this.expectNextTokenFlag(TokenFlag.IntegerLiteral).value.toInt()
 
             this.expectNextTokenFlag(TokenFlag.Comma)
 
@@ -165,7 +165,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
         val token = this.expectNextTokenFlag(
             TokenFlag.IdentifierLiteral,
-            TokenFlag.NumberLiteral,
+            TokenFlag.IntegerLiteral,
             TokenFlag.OpenParent,
             TokenFlag.StringLiteral,
             TokenFlag.OpenBracket,
@@ -174,7 +174,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
 
         var left = when (token.flag) {
             TokenFlag.IdentifierLiteral -> IdentifierLiteralExpressionNode(token.value)
-            TokenFlag.NumberLiteral -> NumberLiteralExpressionNode(token.value)
+            TokenFlag.IntegerLiteral -> U64LiteralExpressionNode(token.value)
             TokenFlag.OpenParent -> parseEnclosedExpression()
             //TODO TokenFlag.StringLiteral -> StringLiteralExpressionNode(token.value)
             TokenFlag.OpenBracket -> parseArray()
@@ -201,7 +201,7 @@ class Parser(private val lineBuffer: LineBuffer, private val tokens: List<Token>
         val elements: MutableList<CharExpressionNode> = mutableListOf()
         var index = 0
 
-        var charBuffer: String;
+        var charBuffer: String
         while (index < value.length) {
             charBuffer = if (value[index] == '\\') {
                 index++

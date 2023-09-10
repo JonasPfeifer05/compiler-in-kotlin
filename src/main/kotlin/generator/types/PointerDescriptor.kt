@@ -1,13 +1,13 @@
 package generator.types
 
 import generator.ASMBuilder
-import generator.DataSource
+import generator.AddressFrom
 import generator.Register
 
 class PointerDescriptor(val pointsTo: TypeDescriptor): TypeDescriptor() {
     override fun sizeOf(): Int = 8
 
-    override fun copyTo(to: DataSource, from: DataSource, asmBuilder: ASMBuilder) {
+    override fun copyTo(to: AddressFrom, from: AddressFrom, asmBuilder: ASMBuilder) {
         asmBuilder.mov(
             Register.Rbx, from
         )

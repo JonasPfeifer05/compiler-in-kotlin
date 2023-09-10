@@ -1,6 +1,6 @@
 package generator
 
-import parser.nodes.NumberLiteralExpressionNode
+import parser.nodes.U64LiteralExpressionNode
 import parser.statements.ExitStatement
 import parser.statements.Statement
 
@@ -18,7 +18,7 @@ class ASMGenerator(private val statements: List<Statement>) {
         }
 
         // Add exit with code 0 so that it exits with 0 if there was no other exit before that
-        ExitStatement(NumberLiteralExpressionNode("0")).toAssembly(asmBuilder)
+        ExitStatement(U64LiteralExpressionNode("0")).toAssembly(asmBuilder)
 
         this.addBuildInFunctions()
 

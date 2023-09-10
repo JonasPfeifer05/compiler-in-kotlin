@@ -1,14 +1,14 @@
 package generator.types
 
 import generator.ASMBuilder
-import generator.DataSource
+import generator.AddressFrom
 
 class ArrayDescriptor(val content: TypeDescriptor, private val length: Int): TypeDescriptor() {
     override fun sizeOf(): Int {
         return this.length * this.content.sizeOf()
     }
 
-    override fun copyTo(to: DataSource, from: DataSource, asmBuilder: ASMBuilder) {
+    override fun copyTo(to: AddressFrom, from: AddressFrom, asmBuilder: ASMBuilder) {
         asmBuilder.memcpy(
             to,
             from,

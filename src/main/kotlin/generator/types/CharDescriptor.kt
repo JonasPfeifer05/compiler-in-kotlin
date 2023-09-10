@@ -1,11 +1,11 @@
 package generator.types
 
 import generator.ASMBuilder
-import generator.DataSource
+import generator.AddressFrom
 
 class CharDescriptor: TypeDescriptor() {
     override fun sizeOf(): Int = 1
-    override fun copyTo(to: DataSource, from: DataSource, asmBuilder: ASMBuilder) {
+    override fun copyTo(to: AddressFrom, from: AddressFrom, asmBuilder: ASMBuilder) {
         asmBuilder.append("mov al, BYTE $from")
         asmBuilder.append("mov BYTE $to, al")
     }

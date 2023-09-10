@@ -4,12 +4,12 @@ import generator.*
 
 class U64Descriptor : TypeDescriptor() {
     override fun sizeOf(): Int = 8
-    override fun copyTo(to: DataSource, from: DataSource, asmBuilder: ASMBuilder) {
+    override fun copyTo(to: AddressFrom, from: AddressFrom, asmBuilder: ASMBuilder) {
         asmBuilder.mov(
-            Register.Rbx, from
+            Register.Rbx, from.withSize(MemorySizes.QWord)
         )
         asmBuilder.mov(
-            to, Register.Rbx
+            to.withSize(MemorySizes.QWord), Register.Rbx
         )
     }
 
